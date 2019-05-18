@@ -132,8 +132,12 @@ namespace CASCLib
 
         private int _versionsIndex;
 
-        public static CASCConfig LoadOnlineStorageConfig(string product, string region, bool useCurrentBuild = false)
+        private CASCConfig() { }
+
+        public static CASCConfig LoadOnlineStorageConfig(string product, string region, bool useCurrentBuild = false, ILoggerOptions loggerOptions = null)
         {
+            Logger.Init(loggerOptions);
+
             var config = new CASCConfig { OnlineMode = true, Region = region, Product = product };
 
             using (var ribbit = new RibbitClient("us"))
@@ -214,8 +218,10 @@ namespace CASCLib
             return config;
         }
 
-        public static CASCConfig LoadLocalStorageConfig(string basePath, string product = null)
+        public static CASCConfig LoadLocalStorageConfig(string basePath, string product = null, ILoggerOptions loggerOptions = null)
         {
+            Logger.Init(loggerOptions);
+
             var config = new CASCConfig { OnlineMode = false, BasePath = basePath, Product = product };
 
             config.GameType = CASCGame.DetectLocalGame(basePath);
