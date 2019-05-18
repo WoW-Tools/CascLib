@@ -1,0 +1,4 @@
+.vs/*
+CascLib/bin/*
+CascLib/obj/*
+*.user
