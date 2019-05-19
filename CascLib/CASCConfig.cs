@@ -165,7 +165,7 @@ namespace CASCLib
 
             CDNCache.Init(config);
 
-            config.GameType = CASCGame.DetectOnlineGame(product);
+            config.GameType = CASCGame.DetectGameByUid(product);
 
             string cdnKey = config._VersionsData[config._versionsIndex]["CDNConfig"].ToLower();
             //string cdnKey = "da4896ce91922122bc0a2371ee114423";

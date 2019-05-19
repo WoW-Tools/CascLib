@@ -90,7 +90,7 @@ namespace CASCLib
             throw new Exception("Unable to detect game type by path");
         }
 
-        public static CASCGameType DetectOnlineGame(string uid)
+        public static CASCGameType DetectGameByUid(string uid)
         {
             if (uid.StartsWith("hero"))
                 return CASCGameType.HotS;
@@ -142,7 +142,7 @@ namespace CASCLib
             if (gameType == CASCGameType.Hearthstone)
                 return "Hearthstone_Data";
 
-            if (gameType == CASCGameType.WoW || gameType == CASCGameType.D3)
+            if (gameType == CASCGameType.WoW || gameType == CASCGameType.D3 || gameType == CASCGameType.WC3)
                 return "Data";
 
             if (gameType == CASCGameType.Overwatch)

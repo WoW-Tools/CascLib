@@ -21,20 +21,32 @@ namespace CASCLib
                 {
                     string[] tokens = line.Split('|');
 
+                    if (tokens.Length != 3)
+                        throw new Exception("tokens.Length != 3");
+
                     string file;
 
                     LocaleFlags locale = LocaleFlags.All;
 
-                    if (tokens[0].IndexOf('-') == 4)
+                    if (tokens[0].IndexOf(':') != -1)
                     {
-                        string[] tokens2 = tokens[0].Split('-');
+                        string[] tokens2 = tokens[0].Split(':');
 
-                        file = tokens2[1];
-                        locale = (LocaleFlags)Enum.Parse(typeof(LocaleFlags), tokens2[0]);
+                        if (tokens2.Length == 2)
+                            file = tokens2[0] + "\\" + tokens2[1];
+                        else if (tokens2.Length == 3)
+                            file = tokens2[0] + "\\" + tokens2[1] + "\\" + tokens2[2];
+                        else
+                            throw new Exception("tokens2.Length");
                     }
                     else
                     {
                         file = tokens[0];
+                    }
+
+                    if (!Enum.TryParse(tokens[2], out locale))
+                    {
+                        locale = LocaleFlags.All;
                     }
 
                     ulong fileHash = Hasher.ComputeHash(file);
@@ -93,7 +105,7 @@ namespace CASCLib
             // Cleanup fake names for unknown files
             CountUnknown = 0;
 
-            Logger.WriteLine("S1RootHandler: {0} file names missing for locale {1}", CountUnknown, Locale);
+            Logger.WriteLine("WC3RootHandler: {0} file names missing for locale {1}", CountUnknown, Locale);
 
             return root;
         }
