@@ -41,23 +41,35 @@ namespace CASCLib
                 if (File.Exists(Path.Combine(path, "Diablo III.exe")))
                     return CASCGameType.D3;
 
-                if (File.Exists(Path.Combine(path, "Wow.exe")))
-                    return CASCGameType.WoW;
+                string[] wowWinBins = new string[] { "Wow.exe", "WowT.exe", "WowB.exe" };
 
-                if (File.Exists(Path.Combine(path, "WowT.exe")))
-                    return CASCGameType.WoW;
+                for (int i = 0; i < wowWinBins.Length; i++)
+                {
+                    if (File.Exists(Path.Combine(path, wowWinBins[i])))
+                        return CASCGameType.WoW;
+                }
 
-                if (File.Exists(Path.Combine(path, "WowB.exe")))
-                    return CASCGameType.WoW;
+                string[] wowOsxBins = new string[] { "World of Warcraft.app", "World of Warcraft Test.app", "World of Warcraft Beta.app" };
+
+                for (int i = 0; i < wowOsxBins.Length; i++)
+                {
+                    if (Directory.Exists(Path.Combine(path, wowOsxBins[i])))
+                        return CASCGameType.WoW;
+                }
 
                 string[] subFolders = new string[] { "_retail_", "_ptr_", "_classic_", "_classic_beta_" };
-                string[] wowBins = new string[] { "Wow.exe", "WowT.exe", "WowB.exe" };
 
-                foreach (var sf in subFolders)
+                foreach (var subFolder in subFolders)
                 {
-                    foreach (var wb in wowBins)
+                    foreach (var wowBin in wowWinBins)
                     {
-                        if (File.Exists(Path.Combine(path, sf, wb)))
+                        if (File.Exists(Path.Combine(path, subFolder, wowBin)))
+                            return CASCGameType.WoW;
+                    }
+
+                    foreach (var wowBin in wowOsxBins)
+                    {
+                        if (Directory.Exists(Path.Combine(path, subFolder, wowBin)))
                             return CASCGameType.WoW;
                     }
                 }
