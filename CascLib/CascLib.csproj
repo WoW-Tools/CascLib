@@ -6,13 +6,15 @@
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageProjectUrl>https://github.com/WoW-Tools/CascLib</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/WoW-Tools/CascLib.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/WoW-Tools/CascLib</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>TOM_RUS</Authors>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.Analyzers.Compatibility" Version="0.2.12-alpha" />
+    <PackageReference Include="Microsoft.DotNet.Analyzers.Compatibility" Version="0.2.12-alpha">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="MimeKitLite" Version="2.1.5.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
