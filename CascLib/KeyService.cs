@@ -165,5 +165,7 @@ namespace CASCLib
             keys.TryGetValue(keyName, out byte[] key);
             return key;
         }
+
+        public static void SetKey(ulong keyName, byte[] key) => keys[keyName] = key;
     }
 }
