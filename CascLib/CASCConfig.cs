@@ -207,12 +207,23 @@ namespace CASCLib
                 }
             }
 
-            string buildKey = config._VersionsData[config._versionsIndex]["BuildConfig"].ToLower();
-            //string buildKey = "3b0517b51edbe0b96f6ac5ea7eaaed38";
-            using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, buildKey))
+            if (File.Exists("fakebuildconfig"))
             {
-                var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
-                config._Builds.Add(cfg);
+                using (Stream stream = new FileStream("fakebuildconfig", FileMode.Open))
+                {
+                    var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
+                    config._Builds.Add(cfg);
+                }
+            }
+            else
+            {
+                string buildKey = config._VersionsData[config._versionsIndex]["BuildConfig"].ToLower();
+                //string buildKey = "3b0517b51edbe0b96f6ac5ea7eaaed38";
+                using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, buildKey))
+                {
+                    var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
+                    config._Builds.Add(cfg);
+                }
             }
 
             return config;
