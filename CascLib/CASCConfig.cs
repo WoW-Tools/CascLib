@@ -258,12 +258,23 @@ namespace CASCLib
 
             config._Builds = new List<KeyValueConfig>();
 
-            string buildKey = bi["BuildKey"];
-            //string buildKey = "5a05c58e28d0b2c3245954b6f4e2ae66";
-            string buildCfgPath = Path.Combine(basePath, dataFolder, "config", buildKey.Substring(0, 2), buildKey.Substring(2, 2), buildKey);
-            using (Stream stream = new FileStream(buildCfgPath, FileMode.Open))
+            if (File.Exists("fakebuildconfig"))
             {
-                config._Builds.Add(KeyValueConfig.ReadKeyValueConfig(stream));
+                using (Stream stream = new FileStream("fakebuildconfig", FileMode.Open))
+                {
+                    var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
+                    config._Builds.Add(cfg);
+                }
+            }
+            else
+            {
+                string buildKey = bi["BuildKey"];
+                //string buildKey = "5a05c58e28d0b2c3245954b6f4e2ae66";
+                string buildCfgPath = Path.Combine(basePath, dataFolder, "config", buildKey.Substring(0, 2), buildKey.Substring(2, 2), buildKey);
+                using (Stream stream = new FileStream(buildCfgPath, FileMode.Open))
+                {
+                    config._Builds.Add(KeyValueConfig.ReadKeyValueConfig(stream));
+                }
             }
 
             string cdnKey = bi["CDNKey"];
