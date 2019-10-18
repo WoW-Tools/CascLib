@@ -20,8 +20,8 @@ namespace CASCLib
                 {
                     string[] tokens = line.Split('|');
 
-                    if (tokens.Length != 3)
-                        throw new Exception("tokens.Length != 3");
+                    if (tokens.Length != 3 && tokens.Length != 4)
+                        throw new Exception("tokens.Length != 3 && tokens.Length != 4");
 
                     string file;
 
@@ -35,6 +35,8 @@ namespace CASCLib
                             file = tokens2[0] + "\\" + tokens2[1];
                         else if (tokens2.Length == 3)
                             file = tokens2[0] + "\\" + tokens2[1] + "\\" + tokens2[2];
+                        else if (tokens2.Length == 4)
+                            file = tokens2[0] + "\\" + tokens2[1] + "\\" + tokens2[2] + "\\" + tokens2[3];
                         else
                             throw new Exception("tokens2.Length");
                     }
