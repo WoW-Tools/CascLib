@@ -163,6 +163,7 @@ namespace CASCLib
             [0x2C547F26A2613E01] = "37C50C102D4C9E3A5AC069F072B1417D".ToByteArray(),
             // Warcraft III: Reforged
             [0x6E4296823E7D561E] = "C0BFA2943AC3E92286E4443EE3560D65".ToByteArray(),
+            [0xE04D60E31DDEBF63] = "263DB5C402DA8D4D686309CB2E3254D0".ToByteArray(),
         };
 
         public static Salsa20 SalsaInstance { get; } = new Salsa20();
