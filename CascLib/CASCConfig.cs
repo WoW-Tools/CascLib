@@ -14,7 +14,7 @@ namespace CASCLib
         Install = 2,
     }
 
-    class VerBarConfig
+    public class VerBarConfig
     {
         private readonly List<Dictionary<string, string>> Data = new List<Dictionary<string, string>>();
 
@@ -167,11 +167,21 @@ namespace CASCLib
 
             config.GameType = CASCGame.DetectGameByUid(product);
 
-            string cdnKey = config._VersionsData[config._versionsIndex]["CDNConfig"].ToLower();
-            //string cdnKey = "da4896ce91922122bc0a2371ee114423";
-            using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, cdnKey))
+            if (File.Exists("fakecdnconfig"))
             {
-                config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
+                using (Stream stream = new FileStream("fakecdnconfig", FileMode.Open))
+                {
+                    config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
+                }
+            }
+            else
+            {
+                string cdnKey = config._VersionsData[config._versionsIndex]["CDNConfig"].ToLower();
+                //string cdnKey = "da4896ce91922122bc0a2371ee114423";
+                using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, cdnKey))
+                {
+                    config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
+                }
             }
 
             config.ActiveBuild = 0;
@@ -277,12 +287,22 @@ namespace CASCLib
                 }
             }
 
-            string cdnKey = bi["CDNKey"];
-            //string cdnKey = "23d301e8633baaa063189ca9442b3088";
-            string cdnCfgPath = Path.Combine(basePath, dataFolder, "config", cdnKey.Substring(0, 2), cdnKey.Substring(2, 2), cdnKey);
-            using (Stream stream = new FileStream(cdnCfgPath, FileMode.Open))
+            if (File.Exists("fakecdnconfig"))
             {
-                config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
+                using (Stream stream = new FileStream("fakecdnconfig", FileMode.Open))
+                {
+                    config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
+                }
+            }
+            else
+            {
+                string cdnKey = bi["CDNKey"];
+                //string cdnKey = "23d301e8633baaa063189ca9442b3088";
+                string cdnCfgPath = Path.Combine(basePath, dataFolder, "config", cdnKey.Substring(0, 2), cdnKey.Substring(2, 2), cdnKey);
+                using (Stream stream = new FileStream(cdnCfgPath, FileMode.Open))
+                {
+                    config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
+                }
             }
 
             CDNCache.Init(config);
