@@ -333,7 +333,7 @@ namespace CASCLib
 
         public int ActiveBuild { get; set; }
 
-        public string BuildName { get { return GetActiveBuild(Product)?["Version"] ?? _VersionsData[_versionsIndex]["VersionsName"]; } }
+        public string VersionName { get { return GetActiveBuild(Product)?["Version"] ?? _VersionsData[_versionsIndex]["VersionsName"]; } }
 
         public string Product { get; private set; }
 
@@ -362,6 +362,8 @@ namespace CASCLib
         public string PatchSize => _Builds[ActiveBuild]["patch-size"][0];
 
         public string BuildUID => _Builds[ActiveBuild]["build-uid"][0];
+
+        public string BuildName => _Builds[ActiveBuild]["build-name"][0];
 
         private int cdnHostIndex;
 
