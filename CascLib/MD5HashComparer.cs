@@ -2,7 +2,7 @@
 
 namespace CASCLib
 {
-    class MD5HashComparer : IEqualityComparer<MD5Hash>
+    public class MD5HashComparer : IEqualityComparer<MD5Hash>
     {
         const uint FnvPrime32 = 16777619;
         const uint FnvOffset32 = 2166136261;

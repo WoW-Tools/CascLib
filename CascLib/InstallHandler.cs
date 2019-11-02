@@ -26,10 +26,7 @@ namespace CASCLib
         private List<InstallEntry> InstallData = new List<InstallEntry>();
         private static readonly Jenkins96 Hasher = new Jenkins96();
 
-        public int Count
-        {
-            get { return InstallData.Count; }
-        }
+        public int Count => InstallData.Count;
 
         public InstallHandler(BinaryReader stream, BackgroundWorkerEx worker)
         {
