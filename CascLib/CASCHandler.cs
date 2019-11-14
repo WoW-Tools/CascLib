@@ -58,7 +58,7 @@ namespace CASCLib
                     else if (config.GameType == CASCGameType.S1)
                         RootHandler = new S1RootHandler(fs, worker);
                     else if (config.GameType == CASCGameType.WC3)
-                        RootHandler = new WC3RootHandler(fs, worker);
+                        RootHandler = new Wc3RootHandler(fs, worker);
                     else if (config.GameType == CASCGameType.Hearthstone)
                         RootHandler = new HSRootHandler(fs, worker);
                     else if (config.GameType == CASCGameType.Overwatch)

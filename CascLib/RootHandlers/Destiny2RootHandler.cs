@@ -44,7 +44,7 @@ namespace CASCLib
             // Cleanup fake names for unknown files
             CountUnknown = 0;
 
-            Logger.WriteLine("AgentRootHandler: {0} file names missing for locale {1}", CountUnknown, Locale);
+            Logger.WriteLine("Destiny2RootHandler: {0} file names missing for locale {1}", CountUnknown, Locale);
 
             return root;
         }

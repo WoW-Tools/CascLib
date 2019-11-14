@@ -8,6 +8,8 @@ namespace CASCLib
     {
         private Dictionary<ulong, RootEntry> RootData = new Dictionary<ulong, RootEntry>();
 
+        public override int Count => RootData.Count;
+
         public S1RootHandler(BinaryReader stream, BackgroundWorkerEx worker)
         {
             worker?.ReportProgress(0, "Loading \"root\"...");

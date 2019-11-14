@@ -44,8 +44,8 @@ namespace CASCLib
         private CoreTOCParser tocParser;
         private PackagesParser pkgParser;
 
-        public override int Count { get { return RootData.Count; } }
-        public override int CountTotal { get { return RootData.Sum(re => re.Value.Count); } }
+        public override int Count => RootData.Count;
+        public override int CountTotal => RootData.Sum(re => re.Value.Count);
 
         public D3RootHandler(BinaryReader stream, BackgroundWorkerEx worker, CASCHandler casc)
         {

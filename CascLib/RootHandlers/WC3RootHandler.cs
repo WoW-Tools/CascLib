@@ -4,11 +4,13 @@ using System.IO;
 
 namespace CASCLib
 {
-    public class WC3RootHandler : RootHandlerBase
+    public class Wc3RootHandler : RootHandlerBase
     {
         private Dictionary<ulong, RootEntry> RootData = new Dictionary<ulong, RootEntry>();
 
-        public WC3RootHandler(BinaryReader stream, BackgroundWorkerEx worker)
+        public override int Count => RootData.Count;
+
+        public Wc3RootHandler(BinaryReader stream, BackgroundWorkerEx worker)
         {
             worker?.ReportProgress(0, "Loading \"root\"...");
 
