@@ -30,7 +30,7 @@ namespace CASCLib
         public byte[] Data;
     }
 
-    public class BLTEStream : Stream, IDisposable
+    public class BLTEStream : Stream
     {
         private BinaryReader _reader;
         private MD5 _md5 = MD5.Create();
@@ -335,25 +335,17 @@ namespace CASCLib
             throw new InvalidOperationException();
         }
 
-        public new void Dispose()
-        {
-            Dispose(true);
-        }
 
         protected override void Dispose(bool disposing)
         {
             try
             {
-                if (disposing)
-                {
-                    _stream?.Dispose();
-                    _reader?.Dispose();
-                    _memStream?.Dispose();
-                }
+                _stream?.Dispose();
+                _reader?.Dispose();
+                _memStream?.Dispose();
             }
             finally
             {
-                _dataBlocks = null;
                 _stream = null;
                 _reader = null;
                 _memStream = null;
