@@ -135,7 +135,7 @@ namespace CASCLib
             [0x6A026290FBDB3754] = "3D2D620850A6765DD591224F605B949A".ToByteArray(), // TactKeyId 255
             [0xCF72FD04608D36ED] = "A0A889976D02FA8D00F7AF0017AD721F".ToByteArray(), // TactKeyId 257
             [0x17F07C2E3A45DB3D] = "6D3886BDB91E715AE7182D9F3A08F2C9".ToByteArray(), // TactKeyId 258
-            //[0xDFAB5841B87802B5] = "????????????????????????????????".ToByteArray(), // TactKeyId 259
+            [0xDFAB5841B87802B5] = "F37E96ED8A1F8D852F075DDE37C71327".ToByteArray(), // TactKeyId 259
             [0xC050FA06BB0538F6] = "C552F5D0B72231502D2547314E6015F7".ToByteArray(), // TactKeyId 260
             [0xAB5CDD3FC321831F] = "E1384F5B06EBBCD333695AA6FFC68318".ToByteArray(), // TactKeyId 261
             [0xA7B7D1F12395040E] = "36AD3B31273F1EBCEE8520AAA74B12F2".ToByteArray(), // TactKeyId 262
@@ -159,6 +159,12 @@ namespace CASCLib
             //[0xEA6C3B8F210A077F] = "????????????????????????????????".ToByteArray(), // TactKeyId 284
             //[0x4A738212694AD0B6] = "????????????????????????????????".ToByteArray(), // TactKeyId 285
             //[0x2A430C60DDCC75FF] = "????????????????????????????????".ToByteArray(), // TactKeyId 286
+            [0x0A096FB251CFF471] = "05C75912ECFF040F85FB4697C99C7703".ToByteArray(), // TactKeyId 287
+            //[0x205AFFCDFBA639CB] = "????????????????????????????????".ToByteArray(), // TactKeyId 288
+            [0x32B62CF10571971F] = "18B83FDD5E4B397FB89BB5724675CCBA".ToByteArray(), // TactKeyId 289
+            [0x1DBE03EF5A0059E1] = "D63B263CB1C7E85623CC425879CC592D".ToByteArray(), // TactKeyId 294
+            [0x29D08CEA080FDB84] = "065132A6428B19DFCB2B68948BE958F5".ToByteArray(), // TactKeyId 295
+            [0x3FE91B3FD7F18B37] = "C913B1C20DAEC804E9F8D3527F2A05F7".ToByteArray(), // TactKeyId 296
             // BNA 1.5.0 Alpha
             [0x2C547F26A2613E01] = "37C50C102D4C9E3A5AC069F072B1417D".ToByteArray(),
             // Warcraft III: Reforged
