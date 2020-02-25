@@ -22,6 +22,7 @@ namespace CASCLib
         private CASCConfig config;
         private BackgroundWorkerEx worker;
 
+        public IReadOnlyDictionary<MD5Hash, IndexEntry> Data => CDNIndexData;
         public int Count => CDNIndexData.Count;
 
         private CDNIndexHandler(CASCConfig cascConfig, BackgroundWorkerEx worker)
