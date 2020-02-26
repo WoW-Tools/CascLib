@@ -47,7 +47,7 @@ namespace CASCLib
                 if (File.Exists(Path.Combine(path, "Diablo III.exe")))
                     return CASCGameType.D3;
 
-                string[] wowWinBins = new string[] { "Wow.exe", "WowT.exe", "WowB.exe", "WowClassic.exe" };
+                string[] wowWinBins = new string[] { "Wow.exe", "WowT.exe", "WowB.exe", "WowClassic.exe", "WowClassicT.exe" };
 
                 for (int i = 0; i < wowWinBins.Length; i++)
                 {
