@@ -140,7 +140,20 @@ namespace CASCLib
 
         private CacheMetaData CacheFile(HttpWebResponse resp, string fileName)
         {
-            string md5 = resp.Headers[HttpResponseHeader.ETag].Split(':')[0].Substring(1);
+            var etag = resp.Headers[HttpResponseHeader.ETag];
+
+            string md5;
+
+            if (etag != null)
+            {
+                md5 = etag.Split(':')[0].Substring(1);
+            }
+            else
+            {
+                md5 = "0";
+
+            }
+
             CacheMetaData meta = new CacheMetaData(resp.ContentLength, md5);
             _metaData[fileName] = meta;
 
