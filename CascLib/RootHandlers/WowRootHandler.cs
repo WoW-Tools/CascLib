@@ -44,7 +44,11 @@ namespace CASCLib
         Alternate = 0x80, // many chinese models have this flag
         F00000100 = 0x100, // apparently client doesn't load files with this flag
         F00000800 = 0x800, // only seen on UpdatePlugin files
+        F00020000 = 0x20000, // new 9.0
         F00080000 = 0x80000, // new 9.0
+        F00100000 = 0x100000, // new 9.0
+        F00400000 = 0x400000, // new 9.0
+        F02000000 = 0x2000000, // new 9.0
         Encrypted = 0x8000000, // encrypted may be?
         NoNameHash = 0x10000000, // doesn't have name hash?
         F20000000 = 0x20000000, // added in 21737, used for many cinematics
@@ -122,7 +126,7 @@ namespace CASCLib
                 if (localeFlags == LocaleFlags.None)
                     throw new Exception("block.LocaleFlags == LocaleFlags.None");
 
-                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.Windows | ContentFlags.MacOS | ContentFlags.Alternate | ContentFlags.F00080000 | ContentFlags.NotCompressed | ContentFlags.NoNameHash | ContentFlags.F20000000)) == 0)
+                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.Windows | ContentFlags.MacOS | ContentFlags.Alternate | ContentFlags.F00020000 | ContentFlags.F00080000 | ContentFlags.F00100000 | ContentFlags.F00400000 | ContentFlags.F02000000 | ContentFlags.NotCompressed | ContentFlags.NoNameHash | ContentFlags.F20000000)) == 0)
                     throw new Exception("block.ContentFlags != ContentFlags.None");
 
                 RootEntry[] entries = new RootEntry[count];
