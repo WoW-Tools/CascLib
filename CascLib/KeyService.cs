@@ -186,15 +186,15 @@ namespace CASCLib
 
         public static void LoadKeys()
         {
-            if (File.Exists("TactKey.dat"))
+            if (File.Exists("TactKey.csv"))
             {
-                using (StreamReader sr = new StreamReader("TactKey.dat"))
+                using (StreamReader sr = new StreamReader("TactKey.csv"))
                 {
                     string line;
 
                     while ((line = sr.ReadLine()) != null)
                     {
-                        string[] tokens = line.Split(' ');
+                        string[] tokens = line.Split(';');
 
                         if (tokens.Length != 2)
                             continue;
