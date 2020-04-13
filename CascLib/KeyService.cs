@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 
 namespace CASCLib
 {
@@ -181,5 +183,32 @@ namespace CASCLib
         }
 
         public static void SetKey(ulong keyName, byte[] key) => keys[keyName] = key;
+
+        public static void LoadKeys()
+        {
+            if (File.Exists("TactKey.dat"))
+            {
+                using (StreamReader sr = new StreamReader("TactKey.dat"))
+                {
+                    string line;
+
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        string[] tokens = line.Split(' ');
+
+                        if (tokens.Length != 2)
+                            continue;
+
+                        ulong keyName = ulong.Parse(tokens[0], NumberStyles.HexNumber);
+                        string keyStr = tokens[1];
+
+                        if (keyStr.Length != 32)
+                            continue;
+
+                        SetKey(keyName, keyStr.ToByteArray());
+                    }
+                }
+            }
+        }
     }
 }

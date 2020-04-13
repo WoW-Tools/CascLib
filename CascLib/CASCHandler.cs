@@ -41,6 +41,8 @@ namespace CASCLib
                 Logger.WriteLine("CASCHandler: loaded {0} download data", EncodingHandler.Count);
             }
 
+            KeyService.LoadKeys();
+
             Logger.WriteLine("CASCHandler: loading root data...");
 
             using (var _ = new PerfCounter("new RootHandler()"))
