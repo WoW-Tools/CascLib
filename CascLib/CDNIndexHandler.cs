@@ -104,9 +104,9 @@ namespace CASCLib
                         ParseIndex(fs, i);
                 }
             }
-            catch
+            catch (Exception exc)
             {
-                throw new Exception("DownloadFile failed!");
+                throw new Exception($"DownloadFile failed: {archive} - {exc}");
             }
         }
 
@@ -128,9 +128,9 @@ namespace CASCLib
                     DownloadIndexFile(archive, i);
                 }
             }
-            catch
+            catch (Exception exc)
             {
-                throw new Exception("OpenFile failed: " + archive);
+                throw new Exception($"OpenFile failed: {archive} - {exc}");
             }
         }
 
