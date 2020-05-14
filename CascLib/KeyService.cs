@@ -148,7 +148,7 @@ namespace CASCLib
             [0x6AC5C837A2027A6B] = "B0B7CE091763D15E7F69A8E2342CDD7C".ToByteArray(), // TactKeyId 267
             [0x302AAD8B1F441D95] = "24B86438CF02538649E5BA672FD5993A".ToByteArray(), // TactKeyId 271
             //[0x5C909F00088734B9] = "????????????????????????????????".ToByteArray(), // TactKeyId 272
-            //[0xF785977C76DE9C77] = "????????????????????????????????".ToByteArray(), // TactKeyId 273
+            [0xF785977C76DE9C77] = "7F3C1951F5283A18C1C6D45B6867B51A".ToByteArray(), // TactKeyId 273
             [0x1CDAF3931871BEC3] = "66B4D34A3AF30E5EB7F414F6C30AAF4F".ToByteArray(), // TactKeyId 275
             [0x814E1AB43F3F9345] = "B65E2A63A116AA251FA5D7B0BAABF778".ToByteArray(), // TactKeyId 276
             [0x1FBE97A317FFBEFA] = "BD71F78D43117C68724BB6E0D9577E08".ToByteArray(), // TactKeyId 277
