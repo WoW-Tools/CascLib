@@ -42,6 +42,9 @@ namespace CASCLib
             if (File.Exists(Path.Combine(path, "x86_64", "Warcraft III.exe")))
                 return CASCGameType.WC3;
 
+            if (File.Exists(Path.Combine(path, "_ptr_", "x86_64", "Warcraft III.exe")))
+                return CASCGameType.WC3;
+
             if (Directory.Exists(Path.Combine(path, "Data")))
             {
                 if (File.Exists(Path.Combine(path, "Diablo III.exe")))
