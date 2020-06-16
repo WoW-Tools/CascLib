@@ -33,17 +33,6 @@ namespace CASCLib
             if (Directory.Exists(Path.Combine(path, "Hearthstone_Data")))
                 return CASCGameType.Hearthstone;
 
-            if (File.Exists(Path.Combine(path, "Warcraft III.exe")))
-                return CASCGameType.WC3;
-
-            if (File.Exists(Path.Combine(path, "x86", "Warcraft III.exe")))
-                return CASCGameType.WC3;
-
-            if (File.Exists(Path.Combine(path, "x86_64", "Warcraft III.exe")))
-                return CASCGameType.WC3;
-
-            if (File.Exists(Path.Combine(path, "_ptr_", "x86_64", "Warcraft III.exe")))
-                return CASCGameType.WC3;
 
             if (Directory.Exists(Path.Combine(path, "Data")))
             {
@@ -51,6 +40,8 @@ namespace CASCLib
                     return CASCGameType.D3;
 
                 string[] wowWinBins = new string[] { "Wow.exe", "WowT.exe", "WowB.exe", "WowClassic.exe", "WowClassicT.exe" };
+
+                string wc3WinBin = "Warcraft III.exe";
 
                 for (int i = 0; i < wowWinBins.Length; i++)
                 {
@@ -81,6 +72,11 @@ namespace CASCLib
                         if (Directory.Exists(Path.Combine(path, subFolder, wowBin)))
                             return CASCGameType.WoW;
                     }
+
+
+                    if (File.Exists(Path.Combine(path, subFolder, "x86_64", wc3WinBin)))
+                        return CASCGameType.WC3;
+
                 }
 
                 if (File.Exists(Path.Combine(path, "Agent.exe")))
@@ -94,6 +90,19 @@ namespace CASCLib
 
                 if (File.Exists(Path.Combine(path, "StarCraft.exe")))
                     return CASCGameType.S1;
+
+                if (File.Exists(Path.Combine(path, wc3WinBin)))
+                    return CASCGameType.WC3;
+
+                if (File.Exists(Path.Combine(path, "x86", wc3WinBin)))
+                    return CASCGameType.WC3;
+
+                if (File.Exists(Path.Combine(path, "x86_64", wc3WinBin)))
+                    return CASCGameType.WC3;
+
+
+
+
             }
 
             throw new Exception("Unable to detect game type by path");
