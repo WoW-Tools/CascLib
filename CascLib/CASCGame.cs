@@ -83,6 +83,12 @@ namespace CASCLib
                     }
                 }
 
+                if (File.Exists(Path.Combine(path, "_retail_", "x86_64", "Warcraft III.exe")))
+                    return CASCGameType.WC3;
+
+                if (File.Exists(Path.Combine(path, "_ptr_", "x86_64", "Warcraft III.exe")))
+                    return CASCGameType.WC3;
+
                 if (File.Exists(Path.Combine(path, "Agent.exe")))
                     return CASCGameType.Agent;
 
