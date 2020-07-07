@@ -51,6 +51,7 @@ namespace CASCLib
         F00200000 = 0x200000, // new 9.0
         F00400000 = 0x400000, // new 9.0
         F02000000 = 0x2000000, // new 9.0
+        F04000000 = 0x4000000, // new 9.0
         Encrypted = 0x8000000, // encrypted may be?
         NoNameHash = 0x10000000, // doesn't have name hash?
         F20000000 = 0x20000000, // added in 21737, used for many cinematics
