@@ -50,6 +50,7 @@ namespace CASCLib
         F00100000 = 0x100000, // new 9.0
         F00200000 = 0x200000, // new 9.0
         F00400000 = 0x400000, // new 9.0
+        F00800000 = 0x800000, // new 9.0
         F02000000 = 0x2000000, // new 9.0
         F04000000 = 0x4000000, // new 9.0
         Encrypted = 0x8000000, // encrypted may be?
