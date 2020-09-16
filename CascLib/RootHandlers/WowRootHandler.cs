@@ -72,7 +72,7 @@ namespace CASCLib
         public LocaleFlags LocaleFlags;
     }
 
-    class FileDataHash
+    static class FileDataHash
     {
         public static ulong ComputeHash(int fileDataId)
         {
@@ -128,10 +128,10 @@ namespace CASCLib
                 LocaleFlags localeFlags = (LocaleFlags)stream.ReadUInt32();
 
                 if (localeFlags == LocaleFlags.None)
-                    throw new Exception("block.LocaleFlags == LocaleFlags.None");
+                    throw new InvalidDataException("block.LocaleFlags == LocaleFlags.None");
 
                 if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.Windows | ContentFlags.MacOS | ContentFlags.Alternate | ContentFlags.F00020000 | ContentFlags.F00080000 | ContentFlags.F00100000 | ContentFlags.F00400000 | ContentFlags.F02000000 | ContentFlags.NotCompressed | ContentFlags.NoNameHash | ContentFlags.F20000000)) == 0)
-                    throw new Exception("block.ContentFlags != ContentFlags.None");
+                    throw new InvalidDataException("block.ContentFlags != ContentFlags.None");
 
                 RootEntry[] entries = new RootEntry[count];
                 int[] filedataIds = new int[count];

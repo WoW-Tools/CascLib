@@ -6,7 +6,7 @@ namespace CASCLib
 {
     public class Wc3RootHandler : RootHandlerBase
     {
-        private Dictionary<ulong, RootEntry> RootData = new Dictionary<ulong, RootEntry>();
+        private readonly Dictionary<ulong, RootEntry> RootData = new Dictionary<ulong, RootEntry>();
 
         public override int Count => RootData.Count;
 
@@ -23,11 +23,9 @@ namespace CASCLib
                     string[] tokens = line.Split('|');
 
                     if (tokens.Length != 3 && tokens.Length != 4)
-                        throw new Exception("tokens.Length != 3 && tokens.Length != 4");
+                        throw new InvalidDataException("tokens.Length != 3 && tokens.Length != 4");
 
                     string file;
-
-                    LocaleFlags locale = LocaleFlags.All;
 
                     if (tokens[0].IndexOf(':') != -1)
                     {
@@ -40,14 +38,14 @@ namespace CASCLib
                         else if (tokens2.Length == 4)
                             file = tokens2[0] + "\\" + tokens2[1] + "\\" + tokens2[2] + "\\" + tokens2[3];
                         else
-                            throw new Exception("tokens2.Length");
+                            throw new InvalidDataException("tokens2.Length");
                     }
                     else
                     {
                         file = tokens[0];
                     }
 
-                    if (!Enum.TryParse(tokens[2], out locale))
+                    if (!Enum.TryParse(tokens[2], out LocaleFlags locale))
                     {
                         locale = LocaleFlags.All;
                     }
