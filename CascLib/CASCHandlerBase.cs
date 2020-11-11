@@ -137,10 +137,9 @@ namespace CASCLib
                 //byte[] unkData2 = reader.ReadBytes(8);
                 dataStream.Position += 10;
 
-                //byte[] data = reader.ReadBytes(idxInfo.Size - 30);
+                byte[] data = reader.ReadBytes(idxInfo.Size - 30);
 
-                //return new MemoryStream(data);
-                return new SubStream(dataStream, dataStream.Position, idxInfo.Size - 30);
+                return new MemoryStream(data);
             }
         }
 
