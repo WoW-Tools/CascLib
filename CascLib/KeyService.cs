@@ -179,7 +179,7 @@ namespace CASCLib
             [0xDA2615B5C0237D39] = "83CBFFFF31B953FED8741A2AA633DEAC".ToByteArray(), // TactKeyId 306
             //[0xB6FF5BC63B2F8172] = "????????????????????????????????".ToByteArray(), // TactKeyId 307
             [0x90E01E041D38A8B0] = "177ACE267F192EF66781F38A6D9CA587".ToByteArray(), // TactKeyId 309
-            //[0x8FD76F6044F9AAB1] = "????????????????????????????????".ToByteArray(), // TactKeyId 310
+            [0x8FD76F6044F9AAB1] = "BE406D7041D1AAF4FB333F8C685F598C".ToByteArray(), // TactKeyId 310
             [0x40377D9CE69C6E30] = "BD9A873E2EEC420BE01AF4DD01B06672".ToByteArray(), // TactKeyId 311
             [0xFDEE9569100B1D53] = "D74729112732728ED33FA88DF0E8839B".ToByteArray(), // TactKeyId 312
             [0x4F68D9D5A1918F0D] = "4B1D03B4F55CE7C065BF0D6EDBCA8954".ToByteArray(), // TactKeyId 313
