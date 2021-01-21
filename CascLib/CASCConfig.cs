@@ -334,6 +334,8 @@ namespace CASCLib
         public int ActiveBuild { get; set; }
 
         public string VersionName { get { return GetActiveBuild(Product)?["Version"] ?? _VersionsData[_versionsIndex]["VersionsName"]; } }
+        
+        public string BuildId { get { return GetActiveBuild(Product)?["Version"]?.Split('.')?.Last() ?? _VersionsData[_versionsIndex]?["BuildId"]; } }
 
         public string Product { get; private set; }
 
