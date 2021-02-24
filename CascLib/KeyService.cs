@@ -218,11 +218,11 @@ namespace CASCLib
 
         public static void SetKey(ulong keyName, byte[] key) => keys[keyName] = key;
 
-        public static void LoadKeys()
+        public static void LoadKeys(string keyFile = "TactKey.csv")
         {
-            if (File.Exists("TactKey.csv"))
+            if (File.Exists(keyFile))
             {
-                using (StreamReader sr = new StreamReader("TactKey.csv"))
+                using (StreamReader sr = new StreamReader(keyFile))
                 {
                     string line;
 
