@@ -130,7 +130,7 @@ namespace CASCLib
                 if (localeFlags == LocaleFlags.None)
                     throw new InvalidDataException("block.LocaleFlags == LocaleFlags.None");
 
-                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.Windows | ContentFlags.MacOS | ContentFlags.Alternate | ContentFlags.F00020000 | ContentFlags.F00080000 | ContentFlags.F00100000 | ContentFlags.F00400000 | ContentFlags.F02000000 | ContentFlags.NotCompressed | ContentFlags.NoNameHash | ContentFlags.F20000000)) == 0)
+                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.Windows | ContentFlags.MacOS | ContentFlags.Alternate | ContentFlags.F00020000 | ContentFlags.F00080000 | ContentFlags.F00100000 | ContentFlags.F00200000 | ContentFlags.F00400000 | ContentFlags.F02000000 | ContentFlags.NotCompressed | ContentFlags.NoNameHash | ContentFlags.F20000000)) == 0)
                     throw new InvalidDataException("block.ContentFlags != ContentFlags.None");
 
                 RootEntry[] entries = new RootEntry[count];
