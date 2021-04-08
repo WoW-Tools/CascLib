@@ -59,7 +59,7 @@ namespace CASCLib
                         RootHandler = new AgentRootHandler(fs, worker);
                     else if (config.GameType == CASCGameType.S1)
                         RootHandler = new S1RootHandler(fs, worker);
-                    else if (config.GameType == CASCGameType.WC3)
+                    else if (config.GameType == CASCGameType.WC3 || config.GameType == CASCGameType.D2R)
                         RootHandler = new Wc3RootHandler(fs, worker);
                     else if (config.GameType == CASCGameType.Hearthstone)
                         RootHandler = new HSRootHandler(fs, worker);

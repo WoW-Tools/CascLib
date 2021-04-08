@@ -17,7 +17,8 @@ namespace CASCLib
         Client,
         S1,
         WC3,
-        Destiny2
+        Destiny2,
+        D2R
     }
 
     public class CASCGame
@@ -35,6 +36,9 @@ namespace CASCLib
 
             if (File.Exists(Path.Combine(path, "Warcraft III.exe")))
                 return CASCGameType.WC3;
+
+            if (File.Exists(Path.Combine(path, "Diablo II Resurrected Launcher.exe")))
+                return CASCGameType.D2R;
 
             if (File.Exists(Path.Combine(path, "x86", "Warcraft III.exe")))
                 return CASCGameType.WC3;
@@ -142,6 +146,9 @@ namespace CASCLib
 
             if (uid.StartsWith("dst2"))
                 return CASCGameType.Destiny2;
+
+            if (uid.StartsWith("osi"))
+                return CASCGameType.D2R;
 
             throw new Exception("Unable to detect game type by uid");
         }
