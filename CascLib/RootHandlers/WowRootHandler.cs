@@ -156,7 +156,7 @@ namespace CASCLib
                     for (var i = 0; i < count; ++i)
                         entries[i].MD5 = stream.Read<MD5Hash>();
 
-                    if (numFilesRead > numFilesTotal - numFilesWithNameHash)
+                    if ((contentFlags & ContentFlags.NoNameHash) == 0)
                     {
                         nameHashes = new ulong[count];
 
