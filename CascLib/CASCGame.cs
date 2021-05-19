@@ -70,7 +70,7 @@ namespace CASCLib
                         return CASCGameType.WoW;
                 }
 
-                string[] subFolders = new string[] { "_retail_", "_ptr_", "_beta_", "_alpha_", "_event1_", "_classic_", "_classic_beta_", "_classic_ptr_" };
+                string[] subFolders = new string[] { "_retail_", "_ptr_", "_beta_", "_alpha_", "_event1_", "_classic_", "_classic_beta_", "_classic_ptr_", "_classic_era_", "_classic_era_beta_", "_classic_era_ptr_" };
 
                 foreach (var subFolder in subFolders)
                 {
