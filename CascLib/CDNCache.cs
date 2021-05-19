@@ -117,6 +117,8 @@ namespace CASCLib
 
                 if (sizeOk && md5Ok)
                 {
+                    Logger.WriteLine($"CDNCache: {file} validated, sizeOk {sizeOk}, md5Ok {md5Ok}, size {stream.Length}, expected size {meta.Size}");
+
                     _dataStreams.Add(fileName, stream);
                     return stream;
                 }
@@ -220,6 +222,8 @@ namespace CASCLib
             //    return false;
 
             HttpWebRequest req = WebRequest.CreateHttp(url);
+            req.ReadWriteTimeout = 15000;
+
             //req.AddRange(0, fileSize - 1);
 
             HttpWebResponse resp;
@@ -238,7 +242,7 @@ namespace CASCLib
             {
                 resp = (HttpWebResponse)exc.Response;
 
-                if (exc.Status == WebExceptionStatus.ProtocolError && resp.StatusCode == (HttpStatusCode)429)
+                if (exc.Status == WebExceptionStatus.ProtocolError && (resp.StatusCode ==  HttpStatusCode.NotFound || resp.StatusCode == (HttpStatusCode)429))
                 {
                     return DownloadFile(cdnPath, path, numRetries + 1);
                 }
@@ -284,7 +288,7 @@ namespace CASCLib
             {
                 resp = (HttpWebResponse)exc.Response;
 
-                if (exc.Status == WebExceptionStatus.ProtocolError && resp.StatusCode == (HttpStatusCode)429)
+                if (exc.Status == WebExceptionStatus.ProtocolError && (resp.StatusCode == HttpStatusCode.NotFound || resp.StatusCode == (HttpStatusCode)429))
                 {
                     return GetFileSize(cdnPath, numRetries + 1);
                 }
@@ -322,7 +326,7 @@ namespace CASCLib
             {
                 resp = (HttpWebResponse)exc.Response;
 
-                if (exc.Status == WebExceptionStatus.ProtocolError && resp.StatusCode == (HttpStatusCode)429)
+                if (exc.Status == WebExceptionStatus.ProtocolError && (resp.StatusCode == HttpStatusCode.NotFound || resp.StatusCode == (HttpStatusCode)429))
                 {
                     return GetMetaData(cdnPath, fileName, numRetries + 1);
                 }

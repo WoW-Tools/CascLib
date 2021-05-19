@@ -134,9 +134,15 @@ namespace CASCLib
             }
         }
 
-        public Stream OpenDataFile(IndexEntry entry)
+        public Stream OpenDataFile(IndexEntry entry, int numRetries = 0)
         {
             var archive = config.Archives[entry.Index];
+
+            if (numRetries >= 5)
+            {
+                Logger.WriteLine("CDNIndexHandler: too many tries to download file {0}", archive);
+                return null;
+            }
 
             string file = config.CDNPath + "/data/" + archive.Substring(0, 2) + "/" + archive.Substring(2, 2) + "/" + archive;
 
@@ -166,15 +172,36 @@ namespace CASCLib
             string url = "http://" + config.CDNHost + "/" + file;
 
             HttpWebRequest req = WebRequest.CreateHttp(url);
+            req.ReadWriteTimeout = 15000;
             //req.Headers[HttpRequestHeader.Range] = string.Format("bytes={0}-{1}", entry.Offset, entry.Offset + entry.Size - 1);
             req.AddRange(entry.Offset, entry.Offset + entry.Size - 1);
-            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
-            using (Stream respStream = resp.GetResponseStream())
+
+            HttpWebResponse resp;
+
+            try
             {
-                MemoryStream ms = new MemoryStream(entry.Size);
-                respStream.CopyBytes(ms, entry.Size);
-                ms.Position = 0;
-                return ms;
+                using (resp = (HttpWebResponse)req.GetResponse())
+                using (Stream rstream = resp.GetResponseStream())
+                {
+                    MemoryStream ms = new MemoryStream(entry.Size);
+                    rstream.CopyBytes(ms, entry.Size);
+                    ms.Position = 0;
+                    return ms;
+                }
+            }
+            catch (WebException exc)
+            {
+                resp = (HttpWebResponse)exc.Response;
+
+                if (exc.Status == WebExceptionStatus.ProtocolError && (resp.StatusCode == HttpStatusCode.NotFound || resp.StatusCode == (HttpStatusCode)429))
+                {
+                    return OpenDataFile(entry, numRetries + 1);
+                }
+                else
+                {
+                    Logger.WriteLine($"CDNIndexHandler: error while opening {url}: Status {exc.Status}, StatusCode {resp?.StatusCode}");
+                    return null;
+                }
             }
         }
 
@@ -232,10 +259,10 @@ namespace CASCLib
             //long fileSize = GetFileSize(url);
             //req.AddRange(0, fileSize - 1);
             using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
-            using (Stream respStream = resp.GetResponseStream())
+            using (Stream stream = resp.GetResponseStream())
             {
                 MemoryStream ms = new MemoryStream();
-                respStream.CopyTo(ms);
+                stream.CopyToStream(ms, resp.ContentLength);
                 ms.Position = 0;
                 return ms;
             }
@@ -244,6 +271,7 @@ namespace CASCLib
         private Stream OpenFile(string url)
         {
             HttpWebRequest req = WebRequest.CreateHttp(url);
+            req.ReadWriteTimeout = 15000;
             //long fileSize = GetFileSize(url);
             //req.AddRange(0, fileSize - 1);
             using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
