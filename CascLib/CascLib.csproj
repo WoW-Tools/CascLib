@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="MimeKitLite" Version="2.15.1" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
