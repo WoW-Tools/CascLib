@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CASCLib
 {
-    public class RibbitClient : IDisposable
+    public sealed class RibbitClient : IDisposable
     {
         private const string ribbitHost = ".version.battle.net";
 

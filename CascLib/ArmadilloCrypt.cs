@@ -6,7 +6,7 @@ namespace CASCLib
 {
     public class ArmadilloCrypt
     {
-        private byte[] _key;
+        private readonly byte[] _key;
 
         public byte[] Key => _key;
 
@@ -18,7 +18,7 @@ namespace CASCLib
         public ArmadilloCrypt(string keyName)
         {
             if (!LoadKeyFile(keyName, out _key))
-                throw new ArgumentException("keyName");
+                throw new ArgumentException("Invalid key name", nameof(keyName));
         }
 
         static bool LoadKeyFile(string keyName, out byte[] key)
@@ -73,12 +73,12 @@ namespace CASCLib
                 return DecryptFile(name, fs);
         }
 
-        public byte[] DecryptFile(string name, Stream stream)
+        public byte[] DecryptFile(string filePath, Stream stream)
         {
-            string fileName = Path.GetFileNameWithoutExtension(name);
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
 
             if (fileName.Length != 32)
-                throw new ArgumentException("name");
+                throw new ArgumentException("Invalid file name", nameof(filePath));
 
             byte[] IV = fileName.Substring(16).ToByteArray();
 
@@ -97,7 +97,7 @@ namespace CASCLib
             string fileName = Path.GetFileNameWithoutExtension(name);
 
             if (fileName.Length != 32)
-                throw new ArgumentException("name");
+                throw new ArgumentException("Invalid file name", nameof(name));
 
             byte[] IV = fileName.Substring(16).ToByteArray();
 
