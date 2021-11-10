@@ -56,7 +56,7 @@ namespace CASCLib
         Encrypted = 0x8000000, // encrypted may be?
         NoNameHash = 0x10000000, // doesn't have name hash?
         F20000000 = 0x20000000, // added in 21737, used for many cinematics
-        Bundle = 0x40000000, // not related to wow, used as some old overwatch hack
+        F40000000 = 0x40000000,
         NotCompressed = 0x80000000 // sounds have this flag
     }
 

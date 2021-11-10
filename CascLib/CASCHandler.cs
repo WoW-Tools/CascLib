@@ -63,8 +63,6 @@ namespace CASCLib
                         RootHandler = new Wc3RootHandler(fs, worker);
                     else if (config.GameType == CASCGameType.Hearthstone)
                         RootHandler = new HSRootHandler(fs, worker);
-                    else if (config.GameType == CASCGameType.Overwatch)
-                        RootHandler = new OwRootHandler(fs, worker, this);
                     else if (config.GameType == CASCGameType.Destiny2)
                         RootHandler = new Destiny2RootHandler(fs, worker);
                     else
@@ -167,28 +165,6 @@ namespace CASCLib
             if (GetEncodingEntry(hash, out EncodingEntry encInfo))
                 return OpenFile(encInfo.Key);
 
-            if (RootHandler is OwRootHandler owRoot)
-            {
-                if (owRoot.GetEntry(hash, out OWRootEntry entry))
-                {
-                    if ((entry.baseEntry.ContentFlags & ContentFlags.Bundle) != ContentFlags.None)
-                    {
-                        if (Encoding.GetEntry(entry.pkgIndex.bundleContentKey, out encInfo))
-                        {
-                            using (Stream bundle = OpenFile(encInfo.Key))
-                            {
-                                MemoryStream ms = new MemoryStream();
-
-                                bundle.Position = entry.pkgIndexRec.Offset;
-                                bundle.CopyBytes(ms, entry.pkgIndexRec.Size);
-
-                                return ms;
-                            }
-                        }
-                    }
-                }
-            }
-
             if (CASCConfig.ThrowOnFileNotFound)
                 throw new FileNotFoundException(string.Format("{0:X16}", hash));
             return null;
@@ -200,35 +176,6 @@ namespace CASCLib
             {
                 SaveFileTo(encInfo.Key, extractPath, fullName);
                 return;
-            }
-
-            if (RootHandler is OwRootHandler owRoot)
-            {
-                if (owRoot.GetEntry(hash, out OWRootEntry entry))
-                {
-                    if ((entry.baseEntry.ContentFlags & ContentFlags.Bundle) != ContentFlags.None)
-                    {
-                        if (Encoding.GetEntry(entry.pkgIndex.bundleContentKey, out encInfo))
-                        {
-                            using (Stream bundle = OpenFile(encInfo.Key))
-                            {
-                                string fullPath = Path.Combine(extractPath, fullName);
-                                string dir = Path.GetDirectoryName(fullPath);
-
-                                if (!Directory.Exists(dir))
-                                    Directory.CreateDirectory(dir);
-
-                                using (var fileStream = File.Open(fullPath, FileMode.Create))
-                                {
-                                    bundle.Position = entry.pkgIndexRec.Offset;
-                                    bundle.CopyBytes(fileStream, entry.pkgIndexRec.Size);
-                                }
-                            }
-
-                            return;
-                        }
-                    }
-                }
             }
 
             if (CASCConfig.ThrowOnFileNotFound)
