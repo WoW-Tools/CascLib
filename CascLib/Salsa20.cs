@@ -50,17 +50,12 @@ namespace CASCLib
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
             if (rgbKey == null)
-                throw new ArgumentNullException("rgbKey");
+                throw new ArgumentNullException(nameof(rgbKey));
             if (!ValidKeySize(rgbKey.Length * 8))
                 throw new CryptographicException("Invalid key size; it must be 128 or 256 bits.");
-            CheckValidIV(rgbIV, "rgbIV");
+            CheckValidIV(rgbIV, nameof(rgbIV));
 
             return new Salsa20CryptoTransform(rgbKey, rgbIV, m_rounds);
-        }
-
-        private new bool ValidKeySize(int size)
-        {
-            return size == 128 || size == 256;
         }
 
         /// <summary>
@@ -95,7 +90,7 @@ namespace CASCLib
             }
             set
             {
-                CheckValidIV(value, "value");
+                CheckValidIV(value, nameof(value));
                 IVValue = (byte[])value.Clone();
             }
         }
@@ -113,7 +108,7 @@ namespace CASCLib
             set
             {
                 if (value != 8 && value != 12 && value != 20)
-                    throw new ArgumentOutOfRangeException("value", "The number of rounds must be 8, 12, or 20.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "The number of rounds must be 8, 12, or 20.");
                 m_rounds = value;
             }
         }
@@ -131,7 +126,7 @@ namespace CASCLib
         private static byte[] GetRandomBytes(int byteCount)
         {
             byte[] bytes = new byte[byteCount];
-            using (RandomNumberGenerator rng = new RNGCryptoServiceProvider())
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
                 rng.GetBytes(bytes);
             return bytes;
         }
@@ -177,15 +172,15 @@ namespace CASCLib
             {
                 // check arguments
                 if (inputBuffer == null)
-                    throw new ArgumentNullException("inputBuffer");
+                    throw new ArgumentNullException(nameof(inputBuffer));
                 if (inputOffset < 0 || inputOffset >= inputBuffer.Length)
-                    throw new ArgumentOutOfRangeException("inputOffset");
+                    throw new ArgumentOutOfRangeException(nameof(inputOffset));
                 if (inputCount < 0 || inputOffset + inputCount > inputBuffer.Length)
-                    throw new ArgumentOutOfRangeException("inputCount");
+                    throw new ArgumentOutOfRangeException(nameof(inputCount));
                 if (outputBuffer == null)
-                    throw new ArgumentNullException("outputBuffer");
+                    throw new ArgumentNullException(nameof(outputBuffer));
                 if (outputOffset < 0 || outputOffset + inputCount > outputBuffer.Length)
-                    throw new ArgumentOutOfRangeException("outputOffset");
+                    throw new ArgumentOutOfRangeException(nameof(outputOffset));
                 if (m_state == null)
                     throw new ObjectDisposedException(GetType().Name);
 
@@ -218,7 +213,7 @@ namespace CASCLib
             public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
             {
                 if (inputCount < 0)
-                    throw new ArgumentOutOfRangeException("inputCount");
+                    throw new ArgumentOutOfRangeException(nameof(inputCount));
 
                 byte[] output = new byte[inputCount];
                 TransformBlock(inputBuffer, inputOffset, inputCount, output, 0);
