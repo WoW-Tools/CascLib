@@ -80,7 +80,7 @@ namespace CASCLib
             if (fileName.Length != 32)
                 throw new ArgumentException("Invalid file name", nameof(filePath));
 
-            byte[] IV = fileName.Substring(16).ToByteArray();
+            byte[] IV = fileName.Substring(16).FromHexString();
 
             ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(_key, IV);
 
@@ -99,7 +99,7 @@ namespace CASCLib
             if (fileName.Length != 32)
                 throw new ArgumentException("Invalid file name", nameof(name));
 
-            byte[] IV = fileName.Substring(16).ToByteArray();
+            byte[] IV = fileName.Substring(16).FromHexString();
 
             ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(_key, IV);
 

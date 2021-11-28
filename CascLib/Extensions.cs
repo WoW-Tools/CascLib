@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace CASCLib
@@ -145,141 +145,87 @@ namespace CASCLib
 
         public static string ToHexString(this byte[] data)
         {
-            return BitConverter.ToString(data).Replace("-", string.Empty);
+#if NET5_0_OR_GREATER
+            return Convert.ToHexString(data);
+#else
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+            if (data.Length == 0)
+                return string.Empty;
+            if (data.Length > int.MaxValue / 2)
+                throw new ArgumentOutOfRangeException(nameof(data), "SR.ArgumentOutOfRange_InputTooLarge");
+            return HexConverter.ToString(data, HexConverter.Casing.Upper);
+#endif
         }
 
-        public static bool EqualsTo(this byte[] hash, byte[] other)
-        {
-            if (hash.Length != other.Length)
-                return false;
-            for (var i = 0; i < hash.Length; ++i)
-                if (hash[i] != other[i])
-                    return false;
-            return true;
-        }
-
-        public static bool EqualsToIgnoreLength(this byte[] array, byte[] other)
-        {
-            for (var i = 0; i < array.Length; ++i)
-                if (array[i] != other[i])
-                    return false;
-            return true;
-        }
-
-        public static byte[] Copy(this byte[] array, int len)
-        {
-            byte[] ret = new byte[len];
-            for (int i = 0; i < len; ++i)
-                ret[i] = array[i];
-            return ret;
-        }
-
-        public static string ToBinaryString(this BitArray bits)
-        {
-            StringBuilder sb = new StringBuilder(bits.Length);
-
-            for (int i = 0; i < bits.Length; ++i)
-            {
-                sb.Append(bits[i] ? '1' : '0');
-            }
-
-            return sb.ToString();
-        }
-
-        public static unsafe bool EqualsTo(this MD5Hash key, byte[] array)
+        public static unsafe bool EqualsTo(this in MD5Hash key, byte[] array)
         {
             if (array.Length != 16)
                 return false;
 
-            MD5Hash other;
+            MD5Hash* other;
 
             fixed (byte* ptr = array)
-                other = *(MD5Hash*)ptr;
+                other = (MD5Hash*)ptr;
 
-            for (int i = 0; i < 2; ++i)
-            {
-                ulong keyPart = *(ulong*)(key.Value + i * 8);
-                ulong otherPart = *(ulong*)(other.Value + i * 8);
+            if (key.lowPart != other->lowPart || key.highPart != other->highPart)
+                return false;
 
-                if (keyPart != otherPart)
-                    return false;
-            }
             return true;
         }
 
-        public static unsafe bool EqualsTo9(this MD5Hash key, byte[] array)
+        public static unsafe bool EqualsTo9(this in MD5Hash key, byte[] array)
         {
-            if (array.Length < 9)
+            if (array.Length != 16)
                 return false;
 
-            MD5Hash other;
+            MD5Hash* other;
 
             fixed (byte* ptr = array)
-                other = *(MD5Hash*)ptr;
+                other = (MD5Hash*)ptr;
 
-            ulong keyPart = *(ulong*)(key.Value);
-            ulong otherPart = *(ulong*)(other.Value);
-
-            if (keyPart != otherPart)
+            if (key.lowPart != other->lowPart)
                 return false;
 
-            if (key.Value[8] != other.Value[8])
+            if ((key.highPart & 0xFF) != (other->highPart & 0xFF))
                 return false;
-
-            //for (int i = 0; i < 2; ++i)
-            //{
-            //    ulong keyPart = *(ulong*)(key.Value + i * 8);
-            //    ulong otherPart = *(ulong*)(other.Value + i * 8);
-
-            //    if (keyPart != otherPart)
-            //        return false;
-            //}
 
             return true;
         }
 
-        public static unsafe bool EqualsTo(this MD5Hash key, MD5Hash other)
+        public static bool EqualsTo(this in MD5Hash key, in MD5Hash other)
         {
-            for (int i = 0; i < 2; ++i)
-            {
-                ulong keyPart = *(ulong*)(key.Value + i * 8);
-                ulong otherPart = *(ulong*)(other.Value + i * 8);
-
-                if (keyPart != otherPart)
-                    return false;
-            }
-            return true;
+            return key.lowPart == other.lowPart && key.highPart == other.highPart;
         }
 
-        public static unsafe string ToHexString(this MD5Hash key)
+        public static unsafe string ToHexString(this in MD5Hash key)
         {
+#if NET5_0_OR_GREATER
+            ref MD5Hash md5ref = ref Unsafe.AsRef(in key);
+            var md5Span = MemoryMarshal.CreateReadOnlySpan(ref md5ref, 1);
+            var span = MemoryMarshal.AsBytes(md5Span);
+            return Convert.ToHexString(span);
+#else
             byte[] array = new byte[16];
-
             fixed (byte* aptr = array)
             {
                 *(MD5Hash*)aptr = key;
             }
-
             return array.ToHexString();
+#endif
         }
 
-        public static unsafe bool IsZeroed(this MD5Hash key)
+        public static unsafe bool IsZeroed(this in MD5Hash key)
         {
-            for (var i = 0; i < 16; ++i)
-                if (key.Value[i] != 0)
-                    return false;
-            return true;
+            return key.lowPart == 0 && key.highPart == 0;
         }
 
         public static unsafe MD5Hash ToMD5(this byte[] array)
         {
             if (array.Length != 16)
-                throw new ArgumentException("array size != 16");
+                throw new ArgumentException("array size != 16", nameof(array));
 
-            fixed (byte* ptr = array)
-            {
-                return *(MD5Hash*)ptr;
-            }
+            return Unsafe.As<byte, MD5Hash>(ref array[0]);
         }
     }
 
@@ -314,16 +260,25 @@ namespace CASCLib
             writer.Write((byte)0);
         }
 
-        public static byte[] ToByteArray(this string str)
+        public static byte[] FromHexString(this string str)
         {
-            str = str.Replace(" ", string.Empty);
+#if NET5_0_OR_GREATER
+            return Convert.FromHexString(str);
+#else
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+            if (str.Length == 0)
+                return Array.Empty<byte>();
+            if ((uint)str.Length % 2 != 0)
+                throw new FormatException("SR.Format_BadHexLength");
 
-            var res = new byte[str.Length / 2];
-            for (int i = 0; i < res.Length; ++i)
-            {
-                res[i] = Convert.ToByte(str.Substring(i * 2, 2), 16);
-            }
-            return res;
+            byte[] result = new byte[str.Length >> 1];
+
+            if (!HexConverter.TryDecodeFromUtf16(str, result))
+                throw new FormatException("SR.Format_BadHexChar");
+
+            return result;
+#endif
         }
     }
 }

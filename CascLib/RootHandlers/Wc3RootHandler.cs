@@ -56,7 +56,7 @@ namespace CASCLib
                     {
                         LocaleFlags = locale,
                         ContentFlags = ContentFlags.None,
-                        MD5 = tokens[1].ToByteArray().ToMD5()
+                        MD5 = tokens[1].FromHexString().ToMD5()
                     };
 
                     CASCFile.Files[fileHash] = new CASCFile(fileHash, file);

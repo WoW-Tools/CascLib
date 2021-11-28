@@ -337,13 +337,13 @@ namespace CASCLib
 
         public string Product { get; private set; }
 
-        public MD5Hash RootMD5 => _Builds[ActiveBuild]["root"][0].ToByteArray().ToMD5();
+        public MD5Hash RootMD5 => _Builds[ActiveBuild]["root"][0].FromHexString().ToMD5();
 
-        public MD5Hash InstallMD5 => _Builds[ActiveBuild]["install"][0].ToByteArray().ToMD5();
+        public MD5Hash InstallMD5 => _Builds[ActiveBuild]["install"][0].FromHexString().ToMD5();
 
         public string InstallSize => _Builds[ActiveBuild]["install-size"][0];
 
-        public MD5Hash DownloadMD5 => _Builds[ActiveBuild]["download"][0].ToByteArray().ToMD5();
+        public MD5Hash DownloadMD5 => _Builds[ActiveBuild]["download"][0].FromHexString().ToMD5();
 
         public string DownloadSize => _Builds[ActiveBuild]["download-size"][0];
 
@@ -351,13 +351,13 @@ namespace CASCLib
 
         //public string PartialPrioritySize => _Builds[ActiveBuild]["partial-priority-size"][0];
 
-        public MD5Hash EncodingMD5 => _Builds[ActiveBuild]["encoding"][0].ToByteArray().ToMD5();
+        public MD5Hash EncodingMD5 => _Builds[ActiveBuild]["encoding"][0].FromHexString().ToMD5();
 
-        public MD5Hash EncodingKey => _Builds[ActiveBuild]["encoding"][1].ToByteArray().ToMD5();
+        public MD5Hash EncodingKey => _Builds[ActiveBuild]["encoding"][1].FromHexString().ToMD5();
 
         public string EncodingSize => _Builds[ActiveBuild]["encoding-size"][0];
 
-        public MD5Hash PatchKey => _Builds[ActiveBuild]["patch"][0].ToByteArray().ToMD5();
+        public MD5Hash PatchKey => _Builds[ActiveBuild]["patch"][0].FromHexString().ToMD5();
 
         public string PatchSize => _Builds[ActiveBuild]["patch-size"][0];
 
