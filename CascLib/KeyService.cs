@@ -204,7 +204,7 @@ namespace CASCLib
             //[0xDAED22AE797E4EF1] = "????????????????????????????????".FromHexString(), // TactKeyId 333
             [0x428811AD4C462334] = "AEAD73A70361D56CD5123A5E20BC754A".FromHexString(), // TactKeyId 334
             [0x39044914C846DB5F] = "F7037B324CAC658684944FB287241C24".FromHexString(), // TactKeyId 335
-            //[0x98D3909D3C2358A9] = "????????????????????????????????".FromHexString(), // TactKeyId 338
+            [0x98D3909D3C2358A9] = "8553AB1E4C4A86052B3D66AA0FA13937".FromHexString(), // TactKeyId 338
             [0x7412D6BD04C6686D] = "F89B4A51AF08ADFBE4CFF8EBEBEDA55A".FromHexString(), // TactKeyId 339
             [0x598F3D6BC8233EA5] = "050E9283C3CE59F4A7BFDABA6689C5D2".FromHexString(), // TactKeyId 340
             [0x47FEFED7D7CE2893] = "6254F2D8ADEEA548BDCCF523C8907D23".FromHexString(), // TactKeyId 343
