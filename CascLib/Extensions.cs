@@ -110,18 +110,23 @@ namespace CASCLib
         {
             long done = 0;
 
-            // TODO: Span<byte>+stackalloc
-            byte[] buf = new byte[0x10000];
-
+#if NET5_0_OR_GREATER
+            Span<byte> buf = stackalloc byte[0x1000];
+#else
+            byte[] buf = new byte[0x1000];
+#endif
             int count;
             do
             {
                 if (progressReporter != null && progressReporter.CancellationPending)
                     return;
-
+#if NET5_0_OR_GREATER
+                count = src.Read(buf);
+                dst.Write(buf.Slice(0, count));
+#else
                 count = src.Read(buf, 0, buf.Length);
                 dst.Write(buf, 0, count);
-
+#endif
                 done += count;
 
                 progressReporter?.ReportProgress((int)(done / (float)len * 100));
@@ -215,12 +220,12 @@ namespace CASCLib
 #endif
         }
 
-        public static unsafe bool IsZeroed(this in MD5Hash key)
+        public static bool IsZeroed(this in MD5Hash key)
         {
             return key.lowPart == 0 && key.highPart == 0;
         }
 
-        public static unsafe MD5Hash ToMD5(this byte[] array)
+        public static MD5Hash ToMD5(this byte[] array)
         {
             if (array.Length != 16)
                 throw new ArgumentException("array size != 16", nameof(array));
