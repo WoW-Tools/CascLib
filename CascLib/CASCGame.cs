@@ -181,6 +181,7 @@ namespace CASCLib
                 gameType == CASCGameType.S2 ||
                 gameType == CASCGameType.S1 ||
                 gameType == CASCGameType.WC3 ||
+                gameType == CASCGameType.D2R ||
                 gameType == CASCGameType.Overwatch;
         }
     }

@@ -27,8 +27,9 @@ namespace CASCLib
         ptBR = 0x4000,
         itIT = 0x8000,
         ptPT = 0x10000,
-        enSG = 0x20000000, // custom
-        plPL = 0x40000000, // custom
+        enSG = 0x10000000, // custom
+        plPL = 0x20000000, // custom
+        jaJP = 0x20000000, // custom
         All_WoW = enUS | koKR | frFR | deDE | zhCN | esES | zhTW | enGB | esMX | ruRU | ptBR | itIT | ptPT
     }
 
