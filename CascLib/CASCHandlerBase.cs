@@ -56,7 +56,7 @@ namespace CASCLib
         public void SaveFileTo(int fileDataId, string fullName, string extractPath) => SaveFileTo(FileDataHash.ComputeHash(fileDataId), extractPath, fullName);
         public abstract void SaveFileTo(ulong hash, string extractPath, string fullName);
 
-        public Stream OpenFile(MD5Hash key)
+        public Stream OpenFile(in MD5Hash key)
         {
             try
             {
@@ -77,9 +77,9 @@ namespace CASCLib
             }
         }
 
-        protected abstract Stream OpenFileOnline(MD5Hash key);
+        protected abstract Stream OpenFileOnline(in MD5Hash key);
 
-        protected Stream OpenFileOnlineInternal(IndexEntry idxInfo, MD5Hash key)
+        protected Stream OpenFileOnlineInternal(IndexEntry idxInfo, in MD5Hash key)
         {
             Stream s;
 
@@ -103,16 +103,16 @@ namespace CASCLib
             return blte;
         }
 
-        private Stream OpenFileLocal(MD5Hash key)
+        private Stream OpenFileLocal(in MD5Hash key)
         {
             Stream stream = GetLocalDataStream(key);
 
             return new BLTEStream(stream, key);
         }
 
-        protected abstract Stream GetLocalDataStream(MD5Hash key);
+        protected abstract Stream GetLocalDataStream(in MD5Hash key);
 
-        protected Stream GetLocalDataStreamInternal(IndexEntry idxInfo, MD5Hash key)
+        protected Stream GetLocalDataStreamInternal(IndexEntry idxInfo, in MD5Hash key)
         {
             if (idxInfo == null)
                 throw new Exception("local index missing");
@@ -143,7 +143,7 @@ namespace CASCLib
             }
         }
 
-        public void SaveFileTo(MD5Hash key, string path, string name)
+        public void SaveFileTo(in MD5Hash key, string path, string name)
         {
             try
             {
@@ -158,9 +158,9 @@ namespace CASCLib
             }
         }
 
-        protected abstract void ExtractFileOnline(MD5Hash key, string path, string name);
+        protected abstract void ExtractFileOnline(in MD5Hash key, string path, string name);
 
-        protected void ExtractFileOnlineInternal(IndexEntry idxInfo, MD5Hash key, string path, string name)
+        protected void ExtractFileOnlineInternal(IndexEntry idxInfo, in MD5Hash key, string path, string name)
         {
             if (idxInfo != null)
             {
@@ -180,7 +180,7 @@ namespace CASCLib
             }
         }
 
-        private void ExtractFileLocal(MD5Hash key, string path, string name)
+        private void ExtractFileLocal(in MD5Hash key, string path, string name)
         {
             Stream stream = GetLocalDataStream(key);
 

@@ -92,7 +92,7 @@ namespace CASCLib
             Logger.WriteLine("CASCHandlerLite: loaded {0} files", HashToKey.Count);
         }
 
-        protected override Stream OpenFileOnline(MD5Hash key)
+        protected override Stream OpenFileOnline(in MD5Hash key)
         {
             IndexEntry idxInfo = CDNIndex.GetIndexInfo(key);
 
@@ -102,7 +102,7 @@ namespace CASCLib
             return OpenFileOnlineInternal(idxInfo, key);
         }
 
-        protected override Stream GetLocalDataStream(MD5Hash key)
+        protected override Stream GetLocalDataStream(in MD5Hash key)
         {
             IndexEntry idxInfo;
 
@@ -114,7 +114,7 @@ namespace CASCLib
             return GetLocalDataStreamInternal(idxInfo, key);
         }
 
-        protected override void ExtractFileOnline(MD5Hash key, string path, string name)
+        protected override void ExtractFileOnline(in MD5Hash key, string path, string name)
         {
             IndexEntry idxInfo = CDNIndex.GetIndexInfo(key);
 
