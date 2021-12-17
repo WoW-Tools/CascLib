@@ -187,6 +187,12 @@ namespace CASCLib
             return true;
         }
 
+        public IReadOnlyList<ulong> GetEncryptionKeys(MD5Hash eKey)
+        {
+            EncryptionData.TryGetValue(eKey, out var keyNames);
+            return keyNames;
+        }
+
         public void Clear()
         {
             EncodingData.Clear();

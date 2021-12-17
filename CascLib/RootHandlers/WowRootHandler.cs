@@ -426,7 +426,7 @@ namespace CASCLib
             CASCFile.Files.Clear();
         }
 
-        public override void Dump()
+        public override void Dump(EncodingHandler encodingHandler = null)
         {
             Logger.WriteLine("WowRootHandler Dump:");
 
@@ -439,11 +439,26 @@ namespace CASCLib
                 else
                     name = $"FILEDATA_{fd.Key}";
 
-                Logger.WriteLine("{0:D7} {1:X16} {2} {3}", fd.Key, fd.Key, fd.Value.Aggregate(LocaleFlags.None, (a, b) => a | b.LocaleFlags), name);
+                Logger.WriteLine($"FileData: {fd.Key:D7} Hash: {hash:X16} Locales: {fd.Value.Aggregate(LocaleFlags.None, (a, b) => a | b.LocaleFlags)} Name: {name}");
 
                 foreach (var entry in fd.Value)
                 {
-                    Logger.WriteLine("\t{0} - {1} - {2}", entry.MD5.ToHexString(), entry.LocaleFlags, entry.ContentFlags);
+                    Logger.WriteLine($"\tcKey: {entry.MD5.ToHexString()} Locale: {entry.LocaleFlags} CF: {entry.ContentFlags}");
+
+                    if (encodingHandler != null)
+                    {
+                        if (encodingHandler.GetEntry(entry.MD5, out var encodingEntry))
+                        {
+                            foreach (var eKey in encodingEntry.Keys)
+                            {
+                                var keys = encodingHandler.GetEncryptionKeys(eKey);
+                                if (keys != null)
+                                    Logger.WriteLine($"\teKey: {eKey.ToHexString()} TactKeys: {string.Join(",", keys.Select(k => $"{k:X16}"))} Size: {encodingEntry.Size}");
+                                else
+                                    Logger.WriteLine($"\teKey: {eKey.ToHexString()} TactKeys: NA Size: {encodingEntry.Size}");
+                            }
+                        }
+                    }
                 }
             }
         }

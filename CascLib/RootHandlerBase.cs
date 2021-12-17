@@ -25,7 +25,7 @@ namespace CASCLib
 
         public abstract void Clear();
 
-        public abstract void Dump();
+        public abstract void Dump(EncodingHandler encodingHandler = null);
 
         protected abstract CASCFolder CreateStorageTree();
 

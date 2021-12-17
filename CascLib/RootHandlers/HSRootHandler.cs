@@ -55,7 +55,7 @@ namespace CASCLib
             CASCFile.Files.Clear();
         }
 
-        public override void Dump()
+        public override void Dump(EncodingHandler encodingHandler = null)
         {
 
         }
