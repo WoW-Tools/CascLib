@@ -1,11 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CASCLib
 {
     public struct EncodingEntry
     {
-        public MD5Hash Key;
+        public List<MD5Hash> Keys;
         public long Size;
     }
 
@@ -13,7 +17,7 @@ namespace CASCLib
     {
         private static readonly MD5HashComparer comparer = new MD5HashComparer();
         private Dictionary<MD5Hash, EncodingEntry> EncodingData = new Dictionary<MD5Hash, EncodingEntry>(comparer);
-
+        private Dictionary<MD5Hash, List<ulong>> EncryptionData = new Dictionary<MD5Hash, List<ulong>>(comparer);
         private const int CHUNK_SIZE = 4096;
 
         public int Count => EncodingData.Count;
@@ -33,22 +37,27 @@ namespace CASCLib
             byte unk1 = stream.ReadByte(); // must be 0
             int ESpecBlockSize = stream.ReadInt32BE();
 
-            stream.Skip(ESpecBlockSize);
-            //string[] strings = Encoding.ASCII.GetString(stream.ReadBytes(ESpecBlockSize)).Split(new[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
+            //stream.Skip(ESpecBlockSize);
+            string[] strings = Encoding.ASCII.GetString(stream.ReadBytes(ESpecBlockSize)).Split(new[] { '\0' }, StringSplitOptions.None);
+
+            //for (int i = 0; i < strings.Length; i++)
+            //{
+            //    Logger.WriteLine($"ESpec {i:D6} {strings[i]}");
+            //}
 
             stream.Skip(CKeyPageCount * 32);
-            //ValueTuple<byte[], byte[]>[] aEntries = new ValueTuple<byte[], byte[]>[CKeyPageCount];
+            //ValueTuple<MD5Hash, MD5Hash>[] cKeyPageData = new ValueTuple<MD5Hash, MD5Hash>[CKeyPageCount];
 
-            //for (int i = 0; i < CKeyPageCount; ++i)
+            //for (int i = 0; i < CKeyPageCount; i++)
             //{
-            //    byte[] firstHash = stream.ReadBytes(16);
-            //    byte[] blockHash = stream.ReadBytes(16);
-            //    aEntries[i] = (firstHash, blockHash);
+            //    MD5Hash firstHash = stream.Read<MD5Hash>();
+            //    MD5Hash blockHash = stream.Read<MD5Hash>();
+            //    cKeyPageData[i] = (firstHash, blockHash);
             //}
 
             long chunkStart = stream.BaseStream.Position;
 
-            for (int i = 0; i < CKeyPageCount; ++i)
+            for (int i = 0; i < CKeyPageCount; i++)
             {
                 byte keysCount;
 
@@ -59,24 +68,18 @@ namespace CASCLib
 
                     EncodingEntry entry = new EncodingEntry()
                     {
-                        Size = fileSize
+                        Size = fileSize,
+                        Keys = new List<MD5Hash>(keysCount)
                     };
 
                     // how do we handle multiple keys?
                     for (int ki = 0; ki < keysCount; ++ki)
                     {
                         MD5Hash eKey = stream.Read<MD5Hash>();
-
-                        // use first key for now
-                        if (ki == 0)
-                            entry.Key = eKey;
-                        //else
-                        //    Logger.WriteLine("Multiple encoding keys for MD5 {0}: {1}", md5.ToHexString(), key.ToHexString());
-
-                        //Logger.WriteLine("Encoding {0:D2} {1} {2} {3} {4}", keysCount, aEntries[i].Item1.ToHexString(), aEntries[i].Item2.ToHexString(), md5.ToHexString(), key.ToHexString());
+                        entry.Keys.Add(eKey);
+                        //Logger.WriteLine($"Encoding {i:D7} {ki:D2} {cKey.ToHexString()} {eKey.ToHexString()} {fileSize}");
                     }
 
-                    //Encodings[md5] = entry;
                     EncodingData.Add(cKey, entry);
                 }
 
@@ -90,30 +93,58 @@ namespace CASCLib
             }
 
             stream.Skip(EKeyPageCount * 32);
-            //for (int i = 0; i < EKeyPageCount; ++i)
+            //ValueTuple<MD5Hash, MD5Hash>[] eKeyPageData = new ValueTuple<MD5Hash, MD5Hash>[EKeyPageCount];
+
+            //for (int i = 0; i < EKeyPageCount; i++)
             //{
-            //    byte[] firstKey = stream.ReadBytes(16);
-            //    byte[] blockHash = stream.ReadBytes(16);
+            //    MD5Hash firstKey = stream.Read<MD5Hash>();
+            //    MD5Hash blockHash = stream.Read<MD5Hash>();
+            //    eKeyPageData[i] = (firstKey, blockHash);
             //}
 
             long chunkStart2 = stream.BaseStream.Position;
 
-            for (int i = 0; i < EKeyPageCount; ++i)
+            Regex regex = new Regex(@"(?<=e:\{)([0-9A-F]{16})(?=,)", RegexOptions.Compiled);
+
+            for (int i = 0; i < EKeyPageCount; i++)
             {
-                byte[] eKey = stream.ReadBytes(16);
-                int eSpecIndex = stream.ReadInt32BE();
-                long fileSize = stream.ReadInt40BE();
+                while (true)
+                {
+                    // each chunk is 4096 bytes, and zero padding at the end
+                    long remaining = CHUNK_SIZE - ((stream.BaseStream.Position - chunkStart2) % CHUNK_SIZE);
 
-                // each chunk is 4096 bytes, and zero padding at the end
-                long remaining = CHUNK_SIZE - ((stream.BaseStream.Position - chunkStart2) % CHUNK_SIZE);
+                    if (remaining < 25)
+                    {
+                        stream.BaseStream.Position += remaining;
+                        break;
+                    }
 
-                if (remaining > 0)
-                    stream.BaseStream.Position += remaining;
+                    MD5Hash eKey = stream.Read<MD5Hash>();
+                    int eSpecIndex = stream.ReadInt32BE();
+                    long fileSize = stream.ReadInt40BE();
+
+                    if (eSpecIndex == -1)
+                    {
+                        stream.BaseStream.Position += remaining;
+                        break;
+                    }
+
+                    string eSpec = strings[eSpecIndex];
+
+                    var matches = regex.Matches(eSpec);
+                    if (matches.Count != 0)
+                    {
+                        var keys = matches.Cast<Match>().Select(m => BitConverter.ToUInt64(m.Value.FromHexString(), 0)).ToList();
+                        EncryptionData.Add(eKey, keys);
+                        //Logger.WriteLine($"Encoding {i:D7} {eKey.ToHexString()} {eSpecIndex} {fileSize} {eSpec} {string.Join(",", keys.Select(x => $"{x:X16}"))}");
+                    }
+                    else
+                    {
+                        //Logger.WriteLine($"Encoding {i:D7} {eKey.ToHexString()} {eSpecIndex} {fileSize} {eSpec}");
+                    }
+                }
             }
-
             // string block till the end of file
-
-            //EncodingData.Dump();
         }
 
         public IEnumerable<KeyValuePair<MD5Hash, EncodingEntry>> Entries
@@ -126,6 +157,35 @@ namespace CASCLib
         }
 
         public bool GetEntry(MD5Hash md5, out EncodingEntry enc) => EncodingData.TryGetValue(md5, out enc);
+
+        public bool TryGetBestEKey(in MD5Hash md5, out MD5Hash eKey)
+        {
+            if (!GetEntry(md5, out var entry))
+            {
+                eKey = default;
+                return false;
+            }
+
+            if (entry.Keys.Count == 1)
+            {
+                eKey = entry.Keys[0];
+                return true;
+            }
+
+            foreach (var key in entry.Keys)
+            {
+                if (EncryptionData.TryGetValue(key, out var keyNames) && keyNames.Count == 1)
+                {
+                    if (KeyService.HasKey(keyNames[0]))
+                    {
+                        eKey = key;
+                        return true;
+                    }
+                }
+            }
+            eKey = entry.Keys[0];
+            return true;
+        }
 
         public void Clear()
         {

@@ -197,7 +197,7 @@ namespace CASCLib
 
             //ExtractFile(encInfo.Key, ".", "install");
 
-            return new BinaryReader(casc.OpenFile(encInfo.Key));
+            return new BinaryReader(casc.OpenFile(encInfo.Keys[0]));
         }
 
         protected BinaryReader OpenDownloadFile(EncodingHandler enc, CASCHandlerBase casc)
@@ -207,7 +207,7 @@ namespace CASCLib
 
             //ExtractFile(encInfo.Key, ".", "download");
 
-            return new BinaryReader(casc.OpenFile(encInfo.Key));
+            return new BinaryReader(casc.OpenFile(encInfo.Keys[0]));
         }
 
         protected BinaryReader OpenRootFile(EncodingHandler enc, CASCHandlerBase casc)
@@ -217,7 +217,7 @@ namespace CASCLib
 
             //ExtractFile(encInfo.Key, ".", "root");
 
-            return new BinaryReader(casc.OpenFile(encInfo.Key));
+            return new BinaryReader(casc.OpenFile(encInfo.Keys[0]));
         }
 
         protected BinaryReader OpenEncodingFile(CASCHandlerBase casc)

@@ -148,6 +148,27 @@ namespace CASCLib
             return false;
         }
 
+        public bool GetEncodingKey(ulong hash, out MD5Hash eKey)
+        {
+            var rootInfos = RootHandler.GetEntries(hash);
+            if (rootInfos.Any())
+                return EncodingHandler.TryGetBestEKey(rootInfos.First().MD5, out eKey);
+
+            if ((CASCConfig.LoadFlags & LoadFlags.Install) != 0)
+            {
+                var installInfos = Install.GetEntries().Where(e => Hasher.ComputeHash(e.Name) == hash && e.Tags.Any(t => t.Type == 1 && t.Name == RootHandler.Locale.ToString()));
+                if (installInfos.Any())
+                    return EncodingHandler.TryGetBestEKey(installInfos.First().MD5, out eKey);
+
+                installInfos = Install.GetEntries().Where(e => Hasher.ComputeHash(e.Name) == hash);
+                if (installInfos.Any())
+                    return EncodingHandler.TryGetBestEKey(installInfos.First().MD5, out eKey);
+            }
+
+            eKey = default;
+            return false;
+        }
+
         public override Stream OpenFile(int fileDataId)
         {
             if (Root is WowRootHandler rh)
@@ -162,8 +183,8 @@ namespace CASCLib
 
         public override Stream OpenFile(ulong hash)
         {
-            if (GetEncodingEntry(hash, out EncodingEntry encInfo))
-                return OpenFile(encInfo.Key);
+            if (GetEncodingKey(hash, out MD5Hash eKey))
+                return OpenFile(eKey);
 
             if (CASCConfig.ThrowOnFileNotFound)
                 throw new FileNotFoundException(string.Format("{0:X16}", hash));
@@ -172,9 +193,9 @@ namespace CASCLib
 
         public override void SaveFileTo(ulong hash, string extractPath, string fullName)
         {
-            if (GetEncodingEntry(hash, out EncodingEntry encInfo))
+            if (GetEncodingKey(hash, out MD5Hash eKey))
             {
-                SaveFileTo(encInfo.Key, extractPath, fullName);
+                SaveFileTo(eKey, extractPath, fullName);
                 return;
             }
 

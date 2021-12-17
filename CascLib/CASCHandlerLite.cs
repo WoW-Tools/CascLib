@@ -60,21 +60,21 @@ namespace CASCLib
                     {
                         if (!HashToKey.ContainsKey(entry.Key))
                         {
-                            HashToKey.Add(entry.Key, enc.Key);
+                            HashToKey.Add(entry.Key, enc.Keys[0]);
                             FileDataIdToHash.Add(RootHandler.GetFileDataIdByHash(entry.Key), entry.Key);
 
                             if (LocalIndex != null)
                             {
-                                IndexEntry iLocal = LocalIndex.GetIndexInfo(enc.Key);
+                                IndexEntry iLocal = LocalIndex.GetIndexInfo(enc.Keys[0]);
 
-                                if (iLocal != null && !LocalIndexData.ContainsKey(enc.Key))
-                                    LocalIndexData.Add(enc.Key, iLocal);
+                                if (iLocal != null && !LocalIndexData.ContainsKey(enc.Keys[0]))
+                                    LocalIndexData.Add(enc.Keys[0], iLocal);
                             }
 
-                            IndexEntry iCDN = CDNIndex.GetIndexInfo(enc.Key);
+                            IndexEntry iCDN = CDNIndex.GetIndexInfo(enc.Keys[0]);
 
-                            if (iCDN != null && !CDNIndexData.ContainsKey(enc.Key))
-                                CDNIndexData.Add(enc.Key, iCDN);
+                            if (iCDN != null && !CDNIndexData.ContainsKey(enc.Keys[0]))
+                                CDNIndexData.Add(enc.Keys[0], iCDN);
                         }
                     }
                 }

@@ -43,5 +43,15 @@ namespace CASCLib
                 logger.Write($"[{DateTime.Now}]: ");
             logger.WriteLine(format, args);
         }
+
+        public static void WriteLine(string format)
+        {
+            if (options == null || fs == null || logger == null)
+                throw new InvalidOperationException("Logger isn't initialized!");
+
+            if (options.TimeStamp)
+                logger.Write($"[{DateTime.Now}]: ");
+            logger.WriteLine(format);
+        }
     }
 }

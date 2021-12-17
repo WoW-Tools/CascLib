@@ -69,7 +69,7 @@ namespace CASCLib
                 if (!casc.Encoding.GetEntry(md5, out EncodingEntry enc))
                     continue;
 
-                using (BinaryReader s = new BinaryReader(casc.OpenFile(enc.Key)))
+                using (BinaryReader s = new BinaryReader(casc.OpenFile(enc.Keys[0])))
                 {
                     uint magic = s.ReadUInt32();
 
@@ -103,7 +103,7 @@ namespace CASCLib
 
             casc.Encoding.GetEntry(coreTocEntry.MD5, out EncodingEntry enc1);
 
-            using (var file = casc.OpenFile(enc1.Key))
+            using (var file = casc.OpenFile(enc1.Keys[0]))
                 tocParser = new CoreTOCParser(file);
 
             worker?.ReportProgress((int)((count + 1) / (float)(count + 2) * 100));
@@ -113,7 +113,7 @@ namespace CASCLib
 
             casc.Encoding.GetEntry(pkgEntry.MD5, out EncodingEntry enc2);
 
-            using (var file = casc.OpenFile(enc2.Key))
+            using (var file = casc.OpenFile(enc2.Keys[0]))
                 pkgParser = new PackagesParser(file);
 
             worker?.ReportProgress(100);
