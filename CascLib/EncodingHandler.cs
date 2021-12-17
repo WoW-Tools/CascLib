@@ -15,9 +15,8 @@ namespace CASCLib
 
     public class EncodingHandler
     {
-        private static readonly MD5HashComparer comparer = new MD5HashComparer();
-        private Dictionary<MD5Hash, EncodingEntry> EncodingData = new Dictionary<MD5Hash, EncodingEntry>(comparer);
-        private Dictionary<MD5Hash, List<ulong>> EncryptionData = new Dictionary<MD5Hash, List<ulong>>(comparer);
+        private Dictionary<MD5Hash, EncodingEntry> EncodingData = new Dictionary<MD5Hash, EncodingEntry>(MD5HashComparer.Instance);
+        private Dictionary<MD5Hash, List<ulong>> EncryptionData = new Dictionary<MD5Hash, List<ulong>>(MD5HashComparer.Instance);
         private const int CHUNK_SIZE = 4096;
 
         public int Count => EncodingData.Count;
@@ -156,11 +155,11 @@ namespace CASCLib
             }
         }
 
-        public bool GetEntry(MD5Hash md5, out EncodingEntry enc) => EncodingData.TryGetValue(md5, out enc);
+        public bool GetEntry(in MD5Hash cKey, out EncodingEntry enc) => EncodingData.TryGetValue(cKey, out enc);
 
-        public bool TryGetBestEKey(in MD5Hash md5, out MD5Hash eKey)
+        public bool TryGetBestEKey(in MD5Hash cKey, out MD5Hash eKey)
         {
-            if (!GetEntry(md5, out var entry))
+            if (!GetEntry(cKey, out var entry))
             {
                 eKey = default;
                 return false;
@@ -187,7 +186,7 @@ namespace CASCLib
             return true;
         }
 
-        public IReadOnlyList<ulong> GetEncryptionKeys(MD5Hash eKey)
+        public IReadOnlyList<ulong> GetEncryptionKeys(in MD5Hash eKey)
         {
             EncryptionData.TryGetValue(eKey, out var keyNames);
             return keyNames;

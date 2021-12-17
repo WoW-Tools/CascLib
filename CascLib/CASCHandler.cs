@@ -129,41 +129,54 @@ namespace CASCLib
 
         public bool GetEncodingEntry(ulong hash, out EncodingEntry enc)
         {
-            var rootInfos = RootHandler.GetEntries(hash);
-            if (rootInfos.Any())
-                return EncodingHandler.GetEntry(rootInfos.First().MD5, out enc);
-
-            if ((CASCConfig.LoadFlags & LoadFlags.Install) != 0)
-            {
-                var installInfos = Install.GetEntries().Where(e => Hasher.ComputeHash(e.Name) == hash && e.Tags.Any(t => t.Type == 1 && t.Name == RootHandler.Locale.ToString()));
-                if (installInfos.Any())
-                    return EncodingHandler.GetEntry(installInfos.First().MD5, out enc);
-
-                installInfos = Install.GetEntries().Where(e => Hasher.ComputeHash(e.Name) == hash);
-                if (installInfos.Any())
-                    return EncodingHandler.GetEntry(installInfos.First().MD5, out enc);
-            }
+            if (GetCKeyForHash(hash, out MD5Hash cKey))
+                return EncodingHandler.GetEntry(cKey, out enc);
 
             enc = default;
             return false;
         }
 
-        public bool GetEncodingKey(ulong hash, out MD5Hash eKey)
+        public long GetFileSize(ulong hash)
+        {
+            if (GetEncodingEntry(hash, out EncodingEntry enc))
+                return enc.Size;
+            return 0;
+        }
+
+        private bool GetCKeyForHash(ulong hash, out MD5Hash cKey)
         {
             var rootInfos = RootHandler.GetEntries(hash);
             if (rootInfos.Any())
-                return EncodingHandler.TryGetBestEKey(rootInfos.First().MD5, out eKey);
+            {
+                cKey = rootInfos.First().MD5;
+                return true;
+            }
 
             if ((CASCConfig.LoadFlags & LoadFlags.Install) != 0)
             {
                 var installInfos = Install.GetEntries().Where(e => Hasher.ComputeHash(e.Name) == hash && e.Tags.Any(t => t.Type == 1 && t.Name == RootHandler.Locale.ToString()));
                 if (installInfos.Any())
-                    return EncodingHandler.TryGetBestEKey(installInfos.First().MD5, out eKey);
+                {
+                    cKey = installInfos.First().MD5;
+                    return true;
+                }
 
                 installInfos = Install.GetEntries().Where(e => Hasher.ComputeHash(e.Name) == hash);
                 if (installInfos.Any())
-                    return EncodingHandler.TryGetBestEKey(installInfos.First().MD5, out eKey);
+                {
+                    cKey = installInfos.First().MD5;
+                    return true;
+                }
             }
+
+            cKey = default;
+            return false;
+        }
+
+        public bool GetEncodingKey(ulong hash, out MD5Hash eKey)
+        {
+            if (GetCKeyForHash(hash, out MD5Hash cKey))
+                return EncodingHandler.TryGetBestEKey(cKey, out eKey);
 
             eKey = default;
             return false;
@@ -175,7 +188,7 @@ namespace CASCLib
                 return OpenFile(rh.GetHashByFileDataId(fileDataId));
 
             if (CASCConfig.ThrowOnFileNotFound)
-                throw new FileNotFoundException("FileData: " + fileDataId.ToString());
+                throw new FileNotFoundException($"FileData: {fileDataId}");
             return null;
         }
 
@@ -187,7 +200,7 @@ namespace CASCLib
                 return OpenFile(eKey);
 
             if (CASCConfig.ThrowOnFileNotFound)
-                throw new FileNotFoundException(string.Format("{0:X16}", hash));
+                throw new FileNotFoundException($"{hash:X16}");
             return null;
         }
 

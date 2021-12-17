@@ -21,8 +21,7 @@ namespace CASCLib
 
     public class DownloadHandler
     {
-        private static readonly MD5HashComparer comparer = new MD5HashComparer();
-        private Dictionary<MD5Hash, DownloadEntry> DownloadData = new Dictionary<MD5Hash, DownloadEntry>(comparer);
+        private Dictionary<MD5Hash, DownloadEntry> DownloadData = new Dictionary<MD5Hash, DownloadEntry>(MD5HashComparer.Instance);
         private Dictionary<string, DownloadTag> Tags = new Dictionary<string, DownloadTag>();
 
         public int Count => DownloadData.Count;

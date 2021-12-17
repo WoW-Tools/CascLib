@@ -94,7 +94,7 @@ namespace CASCLib
 
         public ulong Hash { get; private set; }
 
-        public long GetSize(CASCHandler casc) => casc.GetEncodingEntry(Hash, out EncodingEntry enc) ? enc.Size : 0;
+        public long GetSize(CASCHandler casc) => casc.GetFileSize(Hash);
 
         public int CompareTo(ICASCEntry other, int col, CASCHandler casc)
         {

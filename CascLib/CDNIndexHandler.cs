@@ -16,8 +16,7 @@ namespace CASCLib
 
     public class CDNIndexHandler
     {
-        private static readonly MD5HashComparer comparer = new MD5HashComparer();
-        private Dictionary<MD5Hash, IndexEntry> CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(comparer);
+        private Dictionary<MD5Hash, IndexEntry> CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer.Instance);
 
         private CASCConfig config;
         private BackgroundWorkerEx worker;

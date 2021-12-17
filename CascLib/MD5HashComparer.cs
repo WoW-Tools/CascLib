@@ -8,6 +8,12 @@ namespace CASCLib
         const uint FnvPrime32 = 16777619;
         const uint FnvOffset32 = 2166136261;
 
+        private static MD5HashComparer instance;
+
+        private MD5HashComparer() { }
+
+        public static MD5HashComparer Instance => instance ?? (instance = new MD5HashComparer());
+
         public unsafe bool Equals(MD5Hash x, MD5Hash y)
         {
             return x.lowPart == y.lowPart && x.highPart == y.highPart;

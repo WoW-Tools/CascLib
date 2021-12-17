@@ -8,7 +8,6 @@ namespace CASCLib
     {
         private readonly Dictionary<ulong, MD5Hash> HashToKey = new Dictionary<ulong, MD5Hash>();
         private readonly Dictionary<int, ulong> FileDataIdToHash = new Dictionary<int, ulong>();
-        private static readonly MD5HashComparer comparer = new MD5HashComparer();
         private readonly Dictionary<MD5Hash, IndexEntry> CDNIndexData;
         private readonly Dictionary<MD5Hash, IndexEntry> LocalIndexData;
 
@@ -43,10 +42,10 @@ namespace CASCLib
 
             RootHandler.SetFlags(locale, false, false);
 
-            CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(comparer);
+            CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer.Instance);
 
             if (LocalIndex != null)
-                LocalIndexData = new Dictionary<MD5Hash, IndexEntry>(comparer);
+                LocalIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer.Instance);
 
             RootEntry rootEntry;
 
