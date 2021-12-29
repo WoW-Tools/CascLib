@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Text;
 
 namespace CASCLib
@@ -12,7 +13,9 @@ namespace CASCLib
 
         protected static readonly Jenkins96 Hasher = new Jenkins96();
 
-        protected readonly Dictionary<int, Stream> DataStreams = new Dictionary<int, Stream>();
+        protected readonly Dictionary<int, MemoryMappedFile> DataStreams = new Dictionary<int, MemoryMappedFile>();
+
+        private static readonly object DataStreamLock = new object();
 
         public CASCConfig Config { get; protected set; }
 
@@ -117,10 +120,10 @@ namespace CASCLib
             if (idxInfo == null)
                 throw new Exception("local index missing");
 
-            Stream dataStream = GetDataStream(idxInfo.Index);
-            dataStream.Position = idxInfo.Offset;
+            MemoryMappedFile dataFile = GetDataStream(idxInfo.Index);
 
-            using (BinaryReader reader = new BinaryReader(dataStream, Encoding.ASCII, true))
+            using (var accessor = dataFile.CreateViewStream(idxInfo.Offset, idxInfo.Size))
+            using (BinaryReader reader = new BinaryReader(accessor, Encoding.ASCII, true))
             {
                 byte[] md5 = reader.ReadBytes(16);
                 Array.Reverse(md5);
@@ -135,7 +138,7 @@ namespace CASCLib
 
                 //byte[] unkData1 = reader.ReadBytes(2);
                 //byte[] unkData2 = reader.ReadBytes(8);
-                dataStream.Position += 10;
+                accessor.Position += 10;
 
                 byte[] data = reader.ReadBytes(idxInfo.Size - 30);
 
@@ -227,20 +230,23 @@ namespace CASCLib
             return new BinaryReader(casc.OpenFile(casc.Config.EncodingKey));
         }
 
-        private Stream GetDataStream(int index)
+        private MemoryMappedFile GetDataStream(int index)
         {
-            if (DataStreams.TryGetValue(index, out Stream stream))
+            lock (DataStreamLock)
+            {
+                if (DataStreams.TryGetValue(index, out MemoryMappedFile stream))
+                    return stream;
+
+                string dataFolder = CASCGame.GetDataFolder(Config.GameType);
+
+                string dataFile = Path.Combine(Config.BasePath, dataFolder, "data", string.Format("data.{0:D3}", index));
+
+                stream = MemoryMappedFile.CreateFromFile(dataFile, FileMode.Open);
+
+                DataStreams[index] = stream;
+
                 return stream;
-
-            string dataFolder = CASCGame.GetDataFolder(Config.GameType);
-
-            string dataFile = Path.Combine(Config.BasePath, dataFolder, "data", string.Format("data.{0:D3}", index));
-
-            stream = new FileStream(dataFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-            DataStreams[index] = stream;
-
-            return stream;
+            }
         }
     }
 }
