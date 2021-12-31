@@ -16,8 +16,8 @@ namespace CASCLib
 
     public class CDNIndexHandler
     {
+        private const int CHUNK_SIZE = 4096;
         private Dictionary<MD5Hash, IndexEntry> CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer.Instance);
-
         private CASCConfig config;
         private BackgroundWorkerEx worker;
 
@@ -51,34 +51,79 @@ namespace CASCLib
             return handler;
         }
 
-        private void ParseIndex(Stream stream, int i)
+        private void ParseIndex(Stream stream, int dataIndex)
         {
             using (var br = new BinaryReader(stream))
             {
-                stream.Seek(-12, SeekOrigin.End);
-                int count = br.ReadInt32();
-                stream.Seek(0, SeekOrigin.Begin);
+                stream.Seek(-20, SeekOrigin.End);
 
-                if (count * (16 + 4 + 4) > stream.Length)
+                byte version = br.ReadByte();
+
+                if (version != 1)
+                    throw new InvalidDataException("ParseIndex -> version");
+
+                byte unk1 = br.ReadByte();
+
+                if (unk1 != 0)
+                    throw new InvalidDataException("ParseIndex -> unk1");
+
+                byte unk2 = br.ReadByte();
+
+                if (unk2 != 0)
+                    throw new InvalidDataException("ParseIndex -> unk2");
+
+                byte blockSizeKb = br.ReadByte();
+
+                if (blockSizeKb != 4)
+                    throw new InvalidDataException("ParseIndex -> blockSizeKb");
+
+                byte offsetBytes = br.ReadByte();
+
+                if (offsetBytes != 4)
+                    throw new InvalidDataException("ParseIndex -> offsetBytes");
+
+                byte sizeBytes = br.ReadByte();
+
+                if (sizeBytes != 4)
+                    throw new InvalidDataException("ParseIndex -> sizeBytes");
+
+                byte keySizeBytes = br.ReadByte();
+
+                if (keySizeBytes != 16)
+                    throw new InvalidDataException("ParseIndex -> keySizeBytes");
+
+                byte checksumSize = br.ReadByte();
+
+                if (checksumSize != 8)
+                    throw new InvalidDataException("ParseIndex -> checksumSize");
+
+                int numElements = br.ReadInt32();
+
+                if (numElements * (keySizeBytes + sizeBytes + offsetBytes) > stream.Length)
                     throw new Exception("ParseIndex failed");
 
-                for (int j = 0; j < count; ++j)
+                stream.Seek(0, SeekOrigin.Begin);
+
+                for (int i = 0; i < numElements; i++)
                 {
                     MD5Hash key = br.Read<MD5Hash>();
 
-                    if (key.IsZeroed()) // wtf?
-                        key = br.Read<MD5Hash>();
-
-                    if (key.IsZeroed()) // wtf?
-                        throw new Exception("key.IsZeroed()");
-
-                    IndexEntry entry = new IndexEntry()
+                    IndexEntry entry = new IndexEntry
                     {
-                        Index = i,
+                        Index = dataIndex,
                         Size = br.ReadInt32BE(),
                         Offset = br.ReadInt32BE()
                     };
                     CDNIndexData.Add(key, entry);
+
+                    // each chunk is 4096 bytes, and zero padding at the end
+                    long remaining = CHUNK_SIZE - (stream.Position % CHUNK_SIZE);
+
+                    // skip padding
+                    if (remaining < 16 + 4 + 4)
+                    {
+                        stream.Position += remaining;
+                    }
                 }
             }
         }
