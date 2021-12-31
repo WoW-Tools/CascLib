@@ -82,8 +82,7 @@ namespace CASCLib
 
             byte[] IV = fileName.Substring(16).FromHexString();
 
-            ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(_key, IV);
-
+            using (ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(_key, IV))
             using (CryptoStream cs = new CryptoStream(stream, decryptor, CryptoStreamMode.Read))
             using (MemoryStream ms = new MemoryStream())
             {

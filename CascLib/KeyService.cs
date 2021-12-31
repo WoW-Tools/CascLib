@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace CASCLib
 {
@@ -257,7 +258,18 @@ namespace CASCLib
             return key;
         }
 
-        public static void SetKey(ulong keyName, byte[] key) => keys[keyName] = key;
+        public static void SetKey(ulong keyName, byte[] key)
+        {
+            if (keys.TryGetValue(keyName, out byte[] oldKey))
+            {
+                if (!oldKey.SequenceEqual(key))
+                    Logger.WriteLine($"Duplicate key name {keyName:X16} with different key: old key {oldKey.ToHexString()} new key {key.ToHexString()}");
+                else
+                    Logger.WriteLine($"Duplicate key name {keyName:X16} with key: {key.ToHexString()}");
+            }
+
+            keys[keyName] = key;
+        }
 
         public static void LoadKeys(string keyFile = "TactKey.csv")
         {

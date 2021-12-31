@@ -10,11 +10,6 @@ namespace CASCLib
         private ulong hashValue;
         private static byte[] hashBytes = new byte[0];
 
-        private uint Rot(uint x, int k)
-        {
-            return (x << k) | (x >> (32 - k));
-        }
-
         public ulong ComputeHash(string str, bool fix = true)
         {
             var tempstr = fix ? str.Replace('/', '\\').ToUpperInvariant() : str;
@@ -30,6 +25,8 @@ namespace CASCLib
 
         protected override unsafe void HashCore(byte[] array, int ibStart, int cbSize)
         {
+            static uint Rot(uint x, int k) => (x << k) | (x >> (32 - k));
+
             uint length = (uint)array.Length;
             uint a = 0xdeadbeef + length;
             uint b = a;

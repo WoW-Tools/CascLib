@@ -122,7 +122,7 @@ namespace CASCLib
 
             MemoryMappedFile dataFile = GetDataStream(idxInfo.Index);
 
-            using (var accessor = dataFile.CreateViewStream(idxInfo.Offset, idxInfo.Size))
+            var accessor = dataFile.CreateViewStream(idxInfo.Offset, idxInfo.Size, MemoryMappedFileAccess.Read);
             using (BinaryReader reader = new BinaryReader(accessor, Encoding.ASCII, true))
             {
                 byte[] md5 = reader.ReadBytes(16);
@@ -137,12 +137,14 @@ namespace CASCLib
                     throw new Exception("local data corrupted");
 
                 //byte[] unkData1 = reader.ReadBytes(2);
-                //byte[] unkData2 = reader.ReadBytes(8);
+                //int unkData2 = reader.ReadInt32();
+                //int unkData3 = reader.ReadInt32();
                 accessor.Position += 10;
 
-                byte[] data = reader.ReadBytes(idxInfo.Size - 30);
+                //byte[] data = reader.ReadBytes(idxInfo.Size - 30);
 
-                return new MemoryStream(data);
+                //return new MemoryStream(data);
+                return new NestedStream(accessor, idxInfo.Size - 30);
             }
         }
 
@@ -241,7 +243,7 @@ namespace CASCLib
 
                 string dataFile = Path.Combine(Config.BasePath, dataFolder, "data", string.Format("data.{0:D3}", index));
 
-                stream = MemoryMappedFile.CreateFromFile(dataFile, FileMode.Open);
+                stream = MemoryMappedFile.CreateFromFile(dataFile, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
 
                 DataStreams[index] = stream;
 
