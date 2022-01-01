@@ -8,8 +8,6 @@ namespace CASCLib
     {
         private readonly Dictionary<ulong, MD5Hash> HashToKey = new Dictionary<ulong, MD5Hash>();
         private readonly Dictionary<int, ulong> FileDataIdToHash = new Dictionary<int, ulong>();
-        private readonly Dictionary<MD5Hash, IndexEntry> CDNIndexData;
-        private readonly Dictionary<MD5Hash, IndexEntry> LocalIndexData;
 
         private CASCHandlerLite(CASCConfig config, LocaleFlags locale, BackgroundWorkerEx worker) : base(config, worker)
         {
@@ -42,11 +40,6 @@ namespace CASCLib
 
             RootHandler.SetFlags(locale, false, false);
 
-            CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer.Instance);
-
-            if (LocalIndex != null)
-                LocalIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer.Instance);
-
             RootEntry rootEntry;
 
             foreach (var entry in RootHandler.GetAllEntries())
@@ -61,28 +54,11 @@ namespace CASCLib
                         {
                             HashToKey.Add(entry.Key, enc.Keys[0]);
                             FileDataIdToHash.Add(RootHandler.GetFileDataIdByHash(entry.Key), entry.Key);
-
-                            if (LocalIndex != null)
-                            {
-                                IndexEntry iLocal = LocalIndex.GetIndexInfo(enc.Keys[0]);
-
-                                if (iLocal != null && !LocalIndexData.ContainsKey(enc.Keys[0]))
-                                    LocalIndexData.Add(enc.Keys[0], iLocal);
-                            }
-
-                            IndexEntry iCDN = CDNIndex.GetIndexInfo(enc.Keys[0]);
-
-                            if (iCDN != null && !CDNIndexData.ContainsKey(enc.Keys[0]))
-                                CDNIndexData.Add(enc.Keys[0], iCDN);
                         }
                     }
                 }
             }
 
-            CDNIndex.Clear();
-            //CDNIndex = null;
-            LocalIndex?.Clear();
-            LocalIndex = null;
             RootHandler.Clear();
             RootHandler = null;
             EncodingHandler.Clear();
@@ -95,32 +71,18 @@ namespace CASCLib
         protected override Stream OpenFileOnline(in MD5Hash key)
         {
             IndexEntry idxInfo = CDNIndex.GetIndexInfo(key);
-
-            if (idxInfo == null)
-                CDNIndexData.TryGetValue(key, out idxInfo);
-
             return OpenFileOnlineInternal(idxInfo, key);
         }
 
         protected override Stream GetLocalDataStream(in MD5Hash key)
         {
-            IndexEntry idxInfo;
-
-            if (LocalIndex != null)
-                idxInfo = LocalIndex.GetIndexInfo(key);
-            else
-                LocalIndexData.TryGetValue(key, out idxInfo);
-
+            IndexEntry idxInfo = LocalIndex.GetIndexInfo(key);
             return GetLocalDataStreamInternal(idxInfo, key);
         }
 
         protected override void ExtractFileOnline(in MD5Hash key, string path, string name)
         {
             IndexEntry idxInfo = CDNIndex.GetIndexInfo(key);
-
-            if (idxInfo == null)
-                CDNIndexData.TryGetValue(key, out idxInfo);
-
             ExtractFileOnlineInternal(idxInfo, key, path, name);
         }
 

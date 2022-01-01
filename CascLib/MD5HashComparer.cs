@@ -14,7 +14,7 @@ namespace CASCLib
 
         public static MD5HashComparer Instance => instance ?? (instance = new MD5HashComparer());
 
-        public unsafe bool Equals(MD5Hash x, MD5Hash y)
+        public bool Equals(MD5Hash x, MD5Hash y)
         {
             return x.lowPart == y.lowPart && x.highPart == y.highPart;
         }
@@ -46,7 +46,7 @@ namespace CASCLib
 
         public static MD5HashComparer9 Instance => instance ?? (instance = new MD5HashComparer9());
 
-        public unsafe bool Equals(MD5Hash x, MD5Hash y)
+        public bool Equals(MD5Hash x, MD5Hash y)
         {
             return x.lowPart == y.lowPart && (x.highPart & 0xFF) == (y.highPart & 0xFF);
         }

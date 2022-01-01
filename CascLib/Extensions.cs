@@ -97,7 +97,7 @@ namespace CASCLib
 
         public static void CopyBytes(this Stream input, Stream output, int bytes)
         {
-            byte[] buffer = new byte[0x4000];
+            byte[] buffer = new byte[0x1000];
             int read;
             while (bytes > 0 && (read = input.Read(buffer, 0, Math.Min(buffer.Length, bytes))) > 0)
             {
@@ -138,8 +138,9 @@ namespace CASCLib
             string fullPath = Path.Combine(path, name);
             string dir = Path.GetDirectoryName(fullPath);
 
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
+            DirectoryInfo dirInfo = new DirectoryInfo(dir);
+            if (!dirInfo.Exists)
+                dirInfo.Create();
 
             using (var fileStream = File.Open(fullPath, FileMode.Create))
             {
@@ -163,36 +164,30 @@ namespace CASCLib
 #endif
         }
 
-        public static unsafe bool EqualsTo(this in MD5Hash key, byte[] array)
+        public static bool EqualsTo(this in MD5Hash key, byte[] array)
         {
             if (array.Length != 16)
                 return false;
 
-            MD5Hash* other;
+            ref MD5Hash other = ref Unsafe.As<byte, MD5Hash>(ref array[0]);
 
-            fixed (byte* ptr = array)
-                other = (MD5Hash*)ptr;
-
-            if (key.lowPart != other->lowPart || key.highPart != other->highPart)
+            if (key.lowPart != other.lowPart || key.highPart != other.highPart)
                 return false;
 
             return true;
         }
 
-        public static unsafe bool EqualsTo9(this in MD5Hash key, byte[] array)
+        public static bool EqualsTo9(this in MD5Hash key, byte[] array)
         {
             if (array.Length != 16)
                 return false;
 
-            MD5Hash* other;
+            ref MD5Hash other = ref Unsafe.As<byte, MD5Hash>(ref array[0]);
 
-            fixed (byte* ptr = array)
-                other = (MD5Hash*)ptr;
-
-            if (key.lowPart != other->lowPart)
+            if (key.lowPart != other.lowPart)
                 return false;
 
-            if ((key.highPart & 0xFF) != (other->highPart & 0xFF))
+            if ((key.highPart & 0xFF) != (other.highPart & 0xFF))
                 return false;
 
             return true;
@@ -218,11 +213,6 @@ namespace CASCLib
             }
             return array.ToHexString();
 #endif
-        }
-
-        public static bool IsZeroed(this in MD5Hash key)
-        {
-            return key.lowPart == 0 && key.highPart == 0;
         }
 
         public static MD5Hash ToMD5(this byte[] array)

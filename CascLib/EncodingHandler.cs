@@ -196,6 +196,8 @@ namespace CASCLib
         {
             EncodingData.Clear();
             EncodingData = null;
+            EncryptionData.Clear();
+            EncryptionData = null;
         }
     }
 }

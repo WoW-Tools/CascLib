@@ -85,7 +85,7 @@ namespace CASCLib
             }
         }
 
-        public DownloadEntry GetEntry(MD5Hash key)
+        public DownloadEntry GetEntry(in MD5Hash key)
         {
             DownloadData.TryGetValue(key, out DownloadEntry entry);
 

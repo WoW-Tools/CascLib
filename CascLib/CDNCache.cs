@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Net;
-using System.Security.Cryptography;
 
 namespace CASCLib
 {
     public class CacheMetaData
     {
         public long Size { get; }
-        public string MD5 { get; }
+        public DateTime LastModified { get; }
 
-        public CacheMetaData(long size, string md5)
+        public CacheMetaData(long size, DateTime lastModified)
         {
             Size = size;
-            MD5 = md5;
+            LastModified = lastModified;
         }
     }
 
@@ -26,15 +26,11 @@ namespace CASCLib
         public static bool ValidateFast { get; set; } = true;
         public static string CachePath { get; set; } = "cache";
 
-        private readonly MD5 _md5 = MD5.Create();
-
-        private readonly Dictionary<string, Stream> _dataStreams = new Dictionary<string, Stream>(StringComparer.OrdinalIgnoreCase);
-
+        private readonly Dictionary<string, MemoryMappedFile> _dataStreams = new Dictionary<string, MemoryMappedFile>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, CacheMetaData> _metaData;
-
         private readonly CASCConfig _config;
-
         private static CDNCache _instance;
+
         public static CDNCache Instance => _instance;
 
         private CDNCache(CASCConfig config)
@@ -53,8 +49,8 @@ namespace CASCLib
 
                     foreach (var line in lines)
                     {
-                        string[] tokens = line.Split(' ');
-                        _metaData[tokens[0]] = new CacheMetaData(Convert.ToInt64(tokens[1]), tokens[2]);
+                        string[] tokens = line.Split(new[] { ' ' }, 3);
+                        _metaData[tokens[0]] = new CacheMetaData(Convert.ToInt64(tokens[1]), DateTime.Parse(tokens[2]));
                     }
                 }
             }
@@ -65,42 +61,85 @@ namespace CASCLib
             _instance = new CDNCache(config);
         }
 
-        public Stream OpenFile(string cdnPath, bool isData)
+        public Stream OpenFile(string cdnPath)
         {
             if (!Enabled)
                 return null;
 
-            if (isData && !CacheData)
-                return null;
-
             string file = Path.Combine(CachePath, cdnPath);
 
-            Logger.WriteLine("CDNCache: {0} opening...", file);
+            Logger.WriteLine($"CDNCache: {file} opening...");
 
-            Stream stream = GetDataStream(file, cdnPath);
+            Stream stream = GetFileStream(file, cdnPath);
 
             if (stream != null)
             {
-                Logger.WriteLine("CDNCache: {0} has been opened", file);
+                Logger.WriteLine($"CDNCache: {file} has been opened");
                 CDNCacheStats.numFilesOpened++;
             }
 
             return stream;
         }
 
-        private Stream GetDataStream(string file, string cdnPath)
+        public MemoryMappedFile OpenDataFile(string cdnPath)
+        {
+            if (!Enabled)
+                return null;
+
+            if (!CacheData)
+                return null;
+
+            string file = Path.Combine(CachePath, cdnPath);
+
+            Logger.WriteLine($"CDNCache: {file} opening...");
+
+            MemoryMappedFile stream = GetDataFile(file, cdnPath);
+
+            if (stream != null)
+            {
+                Logger.WriteLine($"CDNCache: {file} has been opened");
+                CDNCacheStats.numFilesOpened++;
+            }
+
+            return stream;
+        }
+
+        private Stream GetFileStream(string file, string cdnPath)
+        {
+            if (ValidateMeta(file, cdnPath))
+                return File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            else
+                return GetFileStream(file, cdnPath);
+        }
+
+        private MemoryMappedFile GetDataFile(string file, string cdnPath)
         {
             string fileName = Path.GetFileName(file);
 
-            if (_dataStreams.TryGetValue(fileName, out Stream stream))
-                return stream;
+            if (_dataStreams.TryGetValue(fileName, out MemoryMappedFile mmFile))
+                return mmFile;
+
+            if (ValidateMeta(file, cdnPath))
+            {
+                mmFile = MemoryMappedFile.CreateFromFile(file, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
+                _dataStreams.Add(fileName, mmFile);
+                return mmFile;
+            }
+            else
+                return GetDataFile(file, cdnPath);
+        }
+
+        private bool ValidateMeta(string file, string cdnPath)
+        {
+            string fileName = Path.GetFileName(file);
 
             FileInfo fi = new FileInfo(file);
 
             if (!fi.Exists && !DownloadFile(cdnPath, file))
-                return null;
+                return false;
 
-            stream = fi.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            if (!fi.Exists)
+                fi.Refresh();
 
             if (Validate || ValidateFast)
             {
@@ -108,57 +147,40 @@ namespace CASCLib
                     meta = GetMetaData(cdnPath, fileName);
 
                 if (meta == null)
-                    throw new InvalidDataException(string.Format("unable to validate file {0}", file));
+                    throw new InvalidDataException($"unable to validate file {file}");
 
-                bool sizeOk, md5Ok;
+                bool sizeOk = fi.Length == meta.Size;
+                bool dateOk = ValidateFast || fi.CreationTime == meta.LastModified;
 
-                sizeOk = stream.Length == meta.Size;
-                md5Ok = ValidateFast || _md5.ComputeHash(stream).ToHexString() == meta.MD5;
-
-                if (sizeOk && md5Ok)
+                if (sizeOk && dateOk)
                 {
-                    Logger.WriteLine($"CDNCache: {file} validated, sizeOk {sizeOk}, md5Ok {md5Ok}, size {stream.Length}, expected size {meta.Size}");
+                    Logger.WriteLine($"CDNCache: {file} validated, sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
 
-                    _dataStreams.Add(fileName, stream);
-                    return stream;
+                    return true;
                 }
                 else
                 {
-                    Logger.WriteLine($"CDNCache: {file} not validated, sizeOk {sizeOk}, md5Ok {md5Ok}, size {stream.Length}, expected size {meta.Size}");
+                    Logger.WriteLine($"CDNCache: {file} not validated, sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
 
-                    stream.Close();
                     _metaData.Remove(fileName);
                     fi.Delete();
-                    return GetDataStream(file, cdnPath);
+                    return ValidateMeta(file, cdnPath);
                 }
             }
-
-            _dataStreams.Add(fileName, stream);
-            return stream;
+            return true;
         }
 
         private CacheMetaData CacheFile(HttpWebResponse resp, string fileName)
         {
-            var etag = resp.Headers[HttpResponseHeader.ETag];
+            var lastModifiedStr = resp.Headers[HttpResponseHeader.LastModified];
 
-            string md5;
-
-            if (etag != null)
-            {
-                md5 = etag.Split(':')[0].Substring(1);
-            }
-            else
-            {
-                md5 = "0";
-
-            }
-
-            CacheMetaData meta = new CacheMetaData(resp.ContentLength, md5);
+            DateTime lastModified = lastModifiedStr != null ? DateTime.Parse(lastModifiedStr) : DateTime.MinValue;
+            CacheMetaData meta = new CacheMetaData(resp.ContentLength, lastModified);
             _metaData[fileName] = meta;
 
             using (var sw = File.AppendText(Path.Combine(CachePath, "cache.meta")))
             {
-                sw.WriteLine(string.Format("{0} {1} {2}", fileName, resp.ContentLength, md5.ToUpper()));
+                sw.WriteLine($"{fileName} {resp.ContentLength} {lastModified}");
             }
 
             return meta;
@@ -169,12 +191,12 @@ namespace CASCLib
             fileName = fileName.ToLower();
             _metaData.Remove(fileName);
 
-            if (_dataStreams.TryGetValue(fileName, out Stream stream))
+            if (_dataStreams.TryGetValue(fileName, out MemoryMappedFile stream))
                 stream.Dispose();
 
             _dataStreams.Remove(fileName);
 
-            string file = _config.CDNPath + "/data/" + fileName.Substring(0, 2) + "/" + fileName.Substring(2, 2) + "/" + fileName;
+            string file = Utils.MakeCDNPath(_config.CDNPath, "data", fileName);
 
             File.Delete(Path.Combine(CachePath, file));
 
@@ -182,22 +204,16 @@ namespace CASCLib
             {
                 foreach (var meta in _metaData)
                 {
-                    sw.WriteLine($"{meta.Key} {meta.Value.Size} {meta.Value.MD5}");
+                    sw.WriteLine($"{meta.Key} {meta.Value.Size} {meta.Value.LastModified}");
                 }
             }
         }
 
-        private bool DownloadFile(string cdnPath, string path, int numRetries = 0)
+        private bool DownloadFile(string cdnPath, string path)
         {
-            if (numRetries >= 5)
-            {
-                Logger.WriteLine($"CDNCache: failed to download {cdnPath} after 5 tries");
-                return false;
-            }
+            string url = Utils.MakeCDNUrl(_config.CDNHost, cdnPath);
 
-            string url = "http://" + _config.CDNHost + "/" + cdnPath;
-
-            Logger.WriteLine("CDNCache: downloading file {0} to {1}", url, path);
+            Logger.WriteLine($"CDNCache: downloading file {url} to {path}");
 
             Directory.CreateDirectory(Path.GetDirectoryName(path));
 
@@ -216,125 +232,53 @@ namespace CASCLib
 
             DateTime startTime = DateTime.Now;
 
-            //long fileSize = GetFileSize(cdnPath);
-
-            //if (fileSize == -1)
-            //    return false;
-
-            HttpWebRequest req = WebRequest.CreateHttp(url);
-            req.ReadWriteTimeout = 15000;
-
-            //req.AddRange(0, fileSize - 1);
-
-            HttpWebResponse resp;
-
             try
             {
-                using (resp = (HttpWebResponse)req.GetResponse())
-                using (Stream stream = resp.GetResponseStream())
-                using (Stream fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+                using (var resp = Utils.HttpWebResponseGet(url))
                 {
-                    stream.CopyToStream(fs, resp.ContentLength);
-                    CacheFile(resp, Path.GetFileName(path));
+                    CacheMetaData meta;
+                    using (Stream stream = resp.GetResponseStream())
+                    using (Stream fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+                    {
+                        stream.CopyToStream(fs, resp.ContentLength);
+                        meta = CacheFile(resp, Path.GetFileName(path));
+                    }
+                    FileInfo fileInfo = new FileInfo(path);
+                    fileInfo.CreationTime = meta.LastModified;
                 }
             }
             catch (WebException exc)
             {
-                resp = (HttpWebResponse)exc.Response;
-
-                if (exc.Status == WebExceptionStatus.ProtocolError && (resp.StatusCode ==  HttpStatusCode.NotFound || resp.StatusCode == (HttpStatusCode)429))
-                {
-                    return DownloadFile(cdnPath, path, numRetries + 1);
-                }
-                else
-                {
-                    Logger.WriteLine($"CDNCache: error while downloading {url}: Status {exc.Status}, StatusCode {resp?.StatusCode}");
-                    return false;
-                }
+                var resp = (HttpWebResponse)exc.Response;
+                Logger.WriteLine($"CDNCache: error while downloading {url}: Status {exc.Status}, StatusCode {resp?.StatusCode}");
+                return false;
             }
 
             TimeSpan timeSpent = DateTime.Now - startTime;
             CDNCacheStats.timeSpentDownloading += timeSpent;
             CDNCacheStats.numFilesDownloaded++;
 
-            Logger.WriteLine("CDNCache: {0} has been downloaded, spent {1}", url, timeSpent);
+            Logger.WriteLine($"CDNCache: {url} has been downloaded, spent {timeSpent}");
 
             return true;
         }
 
-        private long GetFileSize(string cdnPath, int numRetries = 0)
+        private CacheMetaData GetMetaData(string cdnPath, string fileName)
         {
-            if (numRetries >= 5)
-            {
-                Logger.WriteLine($"CDNCache: GetFileSize for {cdnPath} failed after 5 tries");
-                return -1;
-            }
-
-            string url = "http://" + _config.CDNHost + "/" + cdnPath;
-
-            HttpWebRequest req = WebRequest.CreateHttp(url);
-            req.Method = "HEAD";
-
-            HttpWebResponse resp;
+            string url = Utils.MakeCDNUrl(_config.CDNHost, cdnPath);
 
             try
             {
-                using (resp = (HttpWebResponse)req.GetResponse())
-                {
-                    return resp.ContentLength;
-                }
-            }
-            catch (WebException exc)
-            {
-                resp = (HttpWebResponse)exc.Response;
-
-                if (exc.Status == WebExceptionStatus.ProtocolError && (resp.StatusCode == HttpStatusCode.NotFound || resp.StatusCode == (HttpStatusCode)429))
-                {
-                    return GetFileSize(cdnPath, numRetries + 1);
-                }
-                else
-                {
-                    Logger.WriteLine($"CDNCache: error at GetFileSize {url}: Status {exc.Status}, StatusCode {resp.StatusCode}");
-                    return -1;
-                }
-            }
-        }
-
-        private CacheMetaData GetMetaData(string cdnPath, string fileName, int numRetries = 0)
-        {
-            if (numRetries >= 5)
-            {
-                Logger.WriteLine($"CDNCache: GetMetaData for {cdnPath} failed after 5 tries");
-                return null;
-            }
-
-            string url = "http://" + _config.CDNHost + "/" + cdnPath;
-
-            HttpWebRequest req = WebRequest.CreateHttp(url);
-            req.Method = "HEAD";
-
-            HttpWebResponse resp;
-
-            try
-            {
-                using (resp = (HttpWebResponse)req.GetResponse())
+                using (var resp = Utils.HttpWebResponseHead(url))
                 {
                     return CacheFile(resp, fileName);
                 }
             }
             catch (WebException exc)
             {
-                resp = (HttpWebResponse)exc.Response;
-
-                if (exc.Status == WebExceptionStatus.ProtocolError && (resp.StatusCode == HttpStatusCode.NotFound || resp.StatusCode == (HttpStatusCode)429))
-                {
-                    return GetMetaData(cdnPath, fileName, numRetries + 1);
-                }
-                else
-                {
-                    Logger.WriteLine($"CDNCache: error at GetMetaData {url}: Status {exc.Status}, StatusCode {resp.StatusCode}");
-                    return null;
-                }
+                var resp = (HttpWebResponse)exc.Response;
+                Logger.WriteLine($"CDNCache: error at GetMetaData {url}: Status {exc.Status}, StatusCode {resp.StatusCode}");
+                return null;
             }
         }
     }

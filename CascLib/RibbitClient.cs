@@ -10,7 +10,7 @@ namespace CASCLib
     {
         private const string ribbitHost = ".version.battle.net";
 
-        private TcpClient client = new TcpClient();
+        private readonly TcpClient client = new TcpClient();
 
         public RibbitClient(string region)
         {
@@ -20,7 +20,6 @@ namespace CASCLib
         public string Get(string request)
         {
             using (NetworkStream stream = client.GetStream())
-            using (StreamReader reader = new StreamReader(stream))
             {
                 byte[] req = Encoding.ASCII.GetBytes(request + "\r\n");
 
@@ -34,17 +33,7 @@ namespace CASCLib
 
         public Stream GetAsStream(string request)
         {
-            using (NetworkStream stream = client.GetStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                byte[] req = Encoding.ASCII.GetBytes(request + "\r\n");
-
-                stream.Write(req, 0, req.Length);
-
-                var message = MimeMessage.Load(stream);
-
-                return new MemoryStream(Encoding.ASCII.GetBytes(message.TextBody));
-            }
+            return new MemoryStream(Encoding.ASCII.GetBytes(Get(request)));
         }
 
         public void Dispose()

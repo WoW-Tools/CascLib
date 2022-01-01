@@ -15,11 +15,6 @@ namespace CASCLib
         {
             ErrorCode = error;
         }
-
-        public BLTEDecoderException(int error, string fmt, params object[] args) : base(string.Format(fmt, args))
-        {
-            ErrorCode = error;
-        }
     }
 
     class DataBlock
@@ -38,6 +33,7 @@ namespace CASCLib
         private Stream _stream;
         private int _blocksIndex;
         private long _length;
+        private bool _hasHeader;
 
         private const byte ENCRYPTION_SALSA20 = 0x53;
         private const byte ENCRYPTION_ARC4 = 0x41;
@@ -64,20 +60,20 @@ namespace CASCLib
             }
         }
 
-        public BLTEStream(Stream src, MD5Hash md5)
+        public BLTEStream(Stream src, in MD5Hash eKey)
         {
             _stream = src;
             _reader = new BinaryReader(src);
 
-            Parse(md5);
+            Parse(eKey);
         }
 
-        private void Parse(MD5Hash md5)
+        private void Parse(in MD5Hash eKey)
         {
             int size = (int)_reader.BaseStream.Length;
 
             if (size < 8)
-                throw new BLTEDecoderException(0, "not enough data: {0}", 8);
+                throw new BLTEDecoderException(0, "not enough data: size < 8");
 
             int magic = _reader.ReadInt32();
 
@@ -85,6 +81,7 @@ namespace CASCLib
                 throw new BLTEDecoderException(0, "frame header mismatch (bad BLTE file)");
 
             int headerSize = _reader.ReadInt32BE();
+            _hasHeader = headerSize > 0;
 
             if (CASCConfig.ValidateData)
             {
@@ -92,9 +89,9 @@ namespace CASCLib
 
                 _reader.BaseStream.Position = 0;
 
-                byte[] newHash = _md5.ComputeHash(_reader.ReadBytes(headerSize > 0 ? headerSize : size));
+                byte[] newHash = _md5.ComputeHash(_reader.ReadBytes(_hasHeader ? headerSize : size));
 
-                if (!md5.EqualsTo(newHash))
+                if (!eKey.EqualsTo(newHash))
                     throw new BLTEDecoderException(0, "data corrupted");
 
                 _reader.BaseStream.Position = oldPos;
@@ -102,17 +99,17 @@ namespace CASCLib
 
             int numBlocks = 1;
 
-            if (headerSize > 0)
+            if (_hasHeader)
             {
                 if (size < 12)
-                    throw new BLTEDecoderException(0, "not enough data: {0}", 12);
+                    throw new BLTEDecoderException(0, "not enough data: size < 12");
 
                 byte[] fcbytes = _reader.ReadBytes(4);
 
                 numBlocks = fcbytes[1] << 16 | fcbytes[2] << 8 | fcbytes[3] << 0;
 
                 if (fcbytes[0] != 0x0F || numBlocks == 0)
-                    throw new BLTEDecoderException(0, "bad table format 0x{0:x2}, numBlocks {1}", fcbytes[0], numBlocks);
+                    throw new BLTEDecoderException(0, $"bad table format 0x{fcbytes[0]:x2}, numBlocks {numBlocks}");
 
                 int frameHeaderSize = 24 * numBlocks + 12;
 
@@ -120,7 +117,7 @@ namespace CASCLib
                     throw new BLTEDecoderException(0, "header size mismatch");
 
                 if (size < frameHeaderSize)
-                    throw new BLTEDecoderException(0, "not enough data: {0}", frameHeaderSize);
+                    throw new BLTEDecoderException(0, "not enough data: size < frameHeaderSize");
             }
 
             _dataBlocks = new DataBlock[numBlocks];
@@ -129,7 +126,7 @@ namespace CASCLib
             {
                 DataBlock block = new DataBlock();
 
-                if (headerSize != 0)
+                if (_hasHeader)
                 {
                     block.CompSize = _reader.ReadInt32BE();
                     block.DecompSize = _reader.ReadInt32BE();
@@ -149,7 +146,7 @@ namespace CASCLib
 
             ProcessNextBlock();
 
-            _length = headerSize == 0 ? _memStream.Length : _memStream.Capacity;
+            _length = _hasHeader ? _memStream.Capacity : _memStream.Length;
 
             //for (int i = 0; i < _dataBlocks.Length; i++)
             //{
@@ -169,7 +166,7 @@ namespace CASCLib
 
             using (NestedStream ns = new NestedStream(_stream, block.CompSize))
             {
-                if (!block.Hash.IsZeroed() && CASCConfig.ValidateData)
+                if (_hasHeader && CASCConfig.ValidateData)
                 {
                     byte[] blockHash = _md5.ComputeHash(ns);
 
@@ -211,7 +208,7 @@ namespace CASCLib
                     Decompress(data, _memStream);
                     break;
                 default:
-                    throw new BLTEDecoderException(1, "unknown BLTE block type {0} (0x{1:X2})!", (char)blockType, blockType);
+                    throw new BLTEDecoderException(1, $"unknown BLTE block type {(char)blockType} (0x{blockType:X2})!");
             }
         }
 
@@ -256,7 +253,7 @@ namespace CASCLib
                 {
                     key = new byte[16];
                     if (CASCConfig.ThrowOnMissingDecryptionKey && index == 0)
-                        throw new BLTEDecoderException(3, "unknown keyname {0:X16}", keyName);
+                        throw new BLTEDecoderException(3, $"unknown keyname {keyName:X16}");
                     //return null;
                 }
 
@@ -265,9 +262,7 @@ namespace CASCLib
                     using (ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(key, IV))
                     using (CryptoStream cs = new CryptoStream(data, decryptor, CryptoStreamMode.Read))
                     {
-                        MemoryStream ms = new MemoryStream();
-                        cs.CopyTo(ms);
-                        ms.Position = 0;
+                        MemoryStream ms = cs.CopyToMemoryStream();
                         return hasKey ? ms : null;
                     }
                 }

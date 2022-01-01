@@ -9,10 +9,7 @@ namespace CASCLib
     {
         private Dictionary<MD5Hash, IndexEntry> LocalIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer9.Instance);
 
-        public int Count
-        {
-            get { return LocalIndexData.Count; }
-        }
+        public int Count => LocalIndexData.Count;
 
         private LocalIndexHandler()
         {
@@ -44,7 +41,7 @@ namespace CASCLib
             return handler;
         }
 
-        private unsafe void ParseIndex(string idx)
+        private void ParseIndex(string idx)
         {
             using (var fs = new FileStream(idx, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var br = new BinaryReader(fs))
@@ -67,10 +64,7 @@ namespace CASCLib
                     byte[] keyBytes = br.ReadBytes(9);
                     Array.Resize(ref keyBytes, 16);
 
-                    MD5Hash key;
-
-                    fixed (byte* ptr = keyBytes)
-                        key = *(MD5Hash*)ptr;
+                    MD5Hash key = keyBytes.ToMD5();
 
                     byte indexHigh = br.ReadByte();
                     int indexLow = br.ReadInt32BE();
@@ -110,7 +104,7 @@ namespace CASCLib
             return latestIdx;
         }
 
-        public unsafe IndexEntry GetIndexInfo(in MD5Hash key)
+        public IndexEntry GetIndexInfo(in MD5Hash key)
         {
             if (!LocalIndexData.TryGetValue(key, out IndexEntry result))
                 Logger.WriteLine("LocalIndexHandler: missing index: {0}", key.ToHexString());
