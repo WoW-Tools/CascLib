@@ -23,6 +23,10 @@ namespace CASCLib
 
     public class CASCGame
     {
+        static readonly string[] wowWinBins = new string[] { "Wow.exe", "WowT.exe", "WowB.exe", "WowClassic.exe", "WowClassicT.exe", "WowClassicB.exe" };
+        static readonly string[] wowOsxBins = new string[] { "World of Warcraft.app", "World of Warcraft Test.app", "World of Warcraft Beta.app", "World of Warcraft Classic.app" };
+        static readonly string[] wowSubFolders = new string[] { "_retail_", "_ptr_", "_beta_", "_alpha_", "_event1_", "_classic_", "_classic_beta_", "_classic_ptr_", "_classic_era_", "_classic_era_beta_", "_classic_era_ptr_" };
+
         public static CASCGameType DetectLocalGame(string path)
         {
             if (Directory.Exists(Path.Combine(path, "HeroesData")))
@@ -34,58 +38,28 @@ namespace CASCLib
             if (Directory.Exists(Path.Combine(path, "Hearthstone_Data")))
                 return CASCGameType.Hearthstone;
 
-            if (File.Exists(Path.Combine(path, "Warcraft III.exe")))
-                return CASCGameType.WC3;
-
-            if (File.Exists(Path.Combine(path, "Diablo II Resurrected Launcher.exe")))
-                return CASCGameType.D2R;
-
-            if (File.Exists(Path.Combine(path, "x86", "Warcraft III.exe")))
-                return CASCGameType.WC3;
-
-            if (File.Exists(Path.Combine(path, "x86_64", "Warcraft III.exe")))
-                return CASCGameType.WC3;
-
-            if (File.Exists(Path.Combine(path, "_ptr_", "x86_64", "Warcraft III.exe")))
-                return CASCGameType.WC3;
-
             if (Directory.Exists(Path.Combine(path, "Data")))
             {
                 if (File.Exists(Path.Combine(path, "Diablo III.exe")))
                     return CASCGameType.D3;
 
-                string[] wowWinBins = new string[] { "Wow.exe", "WowT.exe", "WowB.exe", "WowClassic.exe", "WowClassicT.exe", "WowClassicB.exe" };
+                if (File.Exists(Path.Combine(path, "D2R.exe")))
+                    return CASCGameType.D2R;
 
-                for (int i = 0; i < wowWinBins.Length; i++)
-                {
-                    if (File.Exists(Path.Combine(path, wowWinBins[i])))
-                        return CASCGameType.WoW;
-                }
+                if (File.Exists(Path.Combine(path, "Diablo II Resurrected Launcher.exe")))
+                    return CASCGameType.D2R;
 
-                string[] wowOsxBins = new string[] { "World of Warcraft.app", "World of Warcraft Test.app", "World of Warcraft Beta.app", "World of Warcraft Classic.app" };
+                if (File.Exists(Path.Combine(path, "Warcraft III.exe")))
+                    return CASCGameType.WC3;
 
-                for (int i = 0; i < wowOsxBins.Length; i++)
-                {
-                    if (Directory.Exists(Path.Combine(path, wowOsxBins[i])))
-                        return CASCGameType.WoW;
-                }
+                if (File.Exists(Path.Combine(path, "Warcraft III Launcher.exe")))
+                    return CASCGameType.WC3;
 
-                string[] subFolders = new string[] { "_retail_", "_ptr_", "_beta_", "_alpha_", "_event1_", "_classic_", "_classic_beta_", "_classic_ptr_", "_classic_era_", "_classic_era_beta_", "_classic_era_ptr_" };
+                if (File.Exists(Path.Combine(path, "x86", "Warcraft III.exe")))
+                    return CASCGameType.WC3;
 
-                foreach (var subFolder in subFolders)
-                {
-                    foreach (var wowBin in wowWinBins)
-                    {
-                        if (File.Exists(Path.Combine(path, subFolder, wowBin)))
-                            return CASCGameType.WoW;
-                    }
-
-                    foreach (var wowBin in wowOsxBins)
-                    {
-                        if (Directory.Exists(Path.Combine(path, subFolder, wowBin)))
-                            return CASCGameType.WoW;
-                    }
-                }
+                if (File.Exists(Path.Combine(path, "x86_64", "Warcraft III.exe")))
+                    return CASCGameType.WC3;
 
                 if (File.Exists(Path.Combine(path, "_retail_", "x86_64", "Warcraft III.exe")))
                     return CASCGameType.WC3;
@@ -102,8 +76,38 @@ namespace CASCLib
                 if (File.Exists(Path.Combine(path, "Overwatch.exe")))
                     return CASCGameType.Overwatch;
 
+                if (File.Exists(Path.Combine(path, "Overwatch Launcher.exe")))
+                    return CASCGameType.Overwatch;
+
                 if (File.Exists(Path.Combine(path, "StarCraft.exe")))
                     return CASCGameType.S1;
+
+                for (int i = 0; i < wowWinBins.Length; i++)
+                {
+                    if (File.Exists(Path.Combine(path, wowWinBins[i])))
+                        return CASCGameType.WoW;
+                }
+
+                for (int i = 0; i < wowOsxBins.Length; i++)
+                {
+                    if (Directory.Exists(Path.Combine(path, wowOsxBins[i])))
+                        return CASCGameType.WoW;
+                }
+
+                foreach (var subFolder in wowSubFolders)
+                {
+                    foreach (var wowBin in wowWinBins)
+                    {
+                        if (File.Exists(Path.Combine(path, subFolder, wowBin)))
+                            return CASCGameType.WoW;
+                    }
+
+                    foreach (var wowBin in wowOsxBins)
+                    {
+                        if (Directory.Exists(Path.Combine(path, subFolder, wowBin)))
+                            return CASCGameType.WoW;
+                    }
+                }
             }
 
             throw new Exception("Unable to detect game type by path");
@@ -175,14 +179,14 @@ namespace CASCLib
 
         public static bool SupportsLocaleSelection(CASCGameType gameType)
         {
-            return gameType == CASCGameType.D3 ||
-                gameType == CASCGameType.WoW ||
-                gameType == CASCGameType.HotS ||
-                gameType == CASCGameType.S2 ||
-                gameType == CASCGameType.S1 ||
-                gameType == CASCGameType.WC3 ||
-                gameType == CASCGameType.D2R ||
-                gameType == CASCGameType.Overwatch;
+            return gameType is CASCGameType.D3 or
+                CASCGameType.WoW or
+                CASCGameType.HotS or
+                CASCGameType.S2 or
+                CASCGameType.S1 or
+                CASCGameType.WC3 or
+                CASCGameType.D2R or
+                CASCGameType.Overwatch;
         }
     }
 }
