@@ -16,7 +16,7 @@ namespace CASCLib
 
     public class VerBarConfig
     {
-        private readonly List<Dictionary<string, string>> Data = new List<Dictionary<string, string>>();
+        protected readonly List<Dictionary<string, string>> Data = new List<Dictionary<string, string>>();
 
         public int Count => Data.Count;
 
@@ -73,7 +73,7 @@ namespace CASCLib
 
     public class KeyValueConfig
     {
-        private readonly Dictionary<string, List<string>> Data = new Dictionary<string, List<string>>();
+        protected readonly Dictionary<string, List<string>> Data = new Dictionary<string, List<string>>();
 
         public List<string> this[string key]
         {
@@ -115,24 +115,24 @@ namespace CASCLib
 
     public class CASCConfig
     {
-        KeyValueConfig _CDNConfig;
+        protected KeyValueConfig _CDNConfig;
 
-        List<KeyValueConfig> _Builds;
+        protected List<KeyValueConfig> _Builds;
 
-        VerBarConfig _BuildInfo;
-        VerBarConfig _CDNData;
-        VerBarConfig _VersionsData;
+        protected VerBarConfig _BuildInfo;
+        protected VerBarConfig _CDNData;
+        protected VerBarConfig _VersionsData;
 
-        public string Region { get; private set; }
-        public CASCGameType GameType { get; private set; }
+        public string Region { get; protected set; }
+        public CASCGameType GameType { get; protected set; }
         public static bool ValidateData { get; set; } = true;
         public static bool ThrowOnFileNotFound { get; set; } = true;
         public static bool ThrowOnMissingDecryptionKey { get; set; } = true;
         public static LoadFlags LoadFlags { get; set; } = LoadFlags.None;
 
-        private int _versionsIndex;
+        protected int _versionsIndex;
 
-        private CASCConfig() { }
+        protected CASCConfig() { }
 
         public static CASCConfig LoadOnlineStorageConfig(string product, string region, bool useCurrentBuild = false, ILoggerOptions loggerOptions = null)
         {
@@ -310,7 +310,7 @@ namespace CASCLib
             return config;
         }
 
-        private Dictionary<string, string> GetActiveBuild(string product = null)
+        protected Dictionary<string, string> GetActiveBuild(string product = null)
         {
             if (_BuildInfo == null)
                 return null;
@@ -327,15 +327,15 @@ namespace CASCLib
             return null;
         }
 
-        public string BasePath { get; private set; }
+        public string BasePath { get; protected set; }
 
-        public bool OnlineMode { get; private set; }
+        public bool OnlineMode { get; protected set; }
 
         public int ActiveBuild { get; set; }
 
         public string VersionName { get { return GetActiveBuild(Product)?["Version"] ?? _VersionsData[_versionsIndex]["VersionsName"]; } }
 
-        public string Product { get; private set; }
+        public string Product { get; protected set; }
 
         public MD5Hash RootMD5 => _Builds[ActiveBuild]["root"][0].FromHexString().ToMD5();
 
@@ -365,7 +365,7 @@ namespace CASCLib
 
         public string BuildName => _Builds[ActiveBuild]["build-name"][0];
 
-        private int cdnHostIndex;
+        protected int cdnHostIndex;
 
         public string CDNHost
         {
