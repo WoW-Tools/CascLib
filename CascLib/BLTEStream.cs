@@ -164,7 +164,9 @@ namespace CASCLib
 
             DataBlock block = _dataBlocks[_blocksIndex];
 
-            using (NestedStream ns = new NestedStream(_stream, block.CompSize))
+            long startPos = _stream.Position;
+
+            using (NestedStream ns = new NestedStream(_stream, block.CompSize, true))
             {
                 if (_hasHeader && CASCConfig.ValidateData)
                 {
@@ -178,6 +180,8 @@ namespace CASCLib
 
                 HandleDataBlock(ns, _blocksIndex);
             }
+
+            _stream.Position = startPos + block.CompSize;
 
             _blocksIndex++;
 
@@ -276,12 +280,19 @@ namespace CASCLib
 
         private static void Decompress(Stream data, Stream outStream)
         {
+#if NET6_0_OR_GREATER
+            using (var zlibStream = new ZLibStream(data, CompressionMode.Decompress))
+            {
+                zlibStream.CopyTo(outStream);
+            }
+#else
             // skip first 2 bytes (zlib)
             data.Position += 2;
             using (var dfltStream = new DeflateStream(data, CompressionMode.Decompress))
             {
                 dfltStream.CopyTo(outStream);
             }
+#endif
         }
 
         public override void Flush()

@@ -21,6 +21,8 @@ namespace CASCLib
         /// </summary>
         private readonly long length;
 
+        private readonly bool leaveOpen;
+
         /// <summary>
         /// The remaining bytes allowed to be read.
         /// </summary>
@@ -31,7 +33,7 @@ namespace CASCLib
         /// </summary>
         /// <param name="underlyingStream">The stream to read from.</param>
         /// <param name="length">The number of bytes to read from the parent stream.</param>
-        public NestedStream(Stream underlyingStream, long length)
+        public NestedStream(Stream underlyingStream, long length, bool leaveOpen = false)
         {
             if (underlyingStream == null)
                 throw new ArgumentNullException(nameof(underlyingStream));
@@ -43,6 +45,7 @@ namespace CASCLib
             this.underlyingStream = underlyingStream;
             this.remainingBytes = length;
             this.length = length;
+            this.leaveOpen = leaveOpen;
         }
 
         /// <inheritdoc />
@@ -227,6 +230,8 @@ namespace CASCLib
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
+            if (!this.leaveOpen)
+                this.underlyingStream.Dispose();
             this.IsDisposed = true;
             base.Dispose(disposing);
         }
