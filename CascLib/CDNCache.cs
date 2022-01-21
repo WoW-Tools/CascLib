@@ -121,7 +121,8 @@ namespace CASCLib
 
             if (ValidateMeta(file, cdnPath))
             {
-                mmFile = MemoryMappedFile.CreateFromFile(file, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
+                FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                mmFile = MemoryMappedFile.CreateFromFile(fs, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, false);
                 _dataStreams.Add(fileName, mmFile);
                 return mmFile;
             }

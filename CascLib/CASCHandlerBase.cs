@@ -243,7 +243,8 @@ namespace CASCLib
 
                 string dataFile = Path.Combine(Config.BasePath, dataFolder, "data", string.Format("data.{0:D3}", index));
 
-                stream = MemoryMappedFile.CreateFromFile(dataFile, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
+                FileStream fs = new FileStream(dataFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                stream = MemoryMappedFile.CreateFromFile(fs, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, false);
 
                 DataStreams[index] = stream;
 
