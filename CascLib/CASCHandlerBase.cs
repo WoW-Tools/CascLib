@@ -59,7 +59,7 @@ namespace CASCLib
         public void SaveFileTo(int fileDataId, string fullName, string extractPath) => SaveFileTo(FileDataHash.ComputeHash(fileDataId), extractPath, fullName);
         public abstract void SaveFileTo(ulong hash, string extractPath, string fullName);
 
-        public Stream OpenFile(in MD5Hash key)
+        public virtual Stream OpenFile(in MD5Hash key)
         {
             try
             {
