@@ -18,7 +18,13 @@ namespace CASCLib
         S1,
         WC3,
         Destiny2,
-        D2R
+        D2R,
+        Wlby,
+        Viper,
+        Odin,
+        Lazarus,
+        Fore,
+        Zeus
     }
 
     public class CASCGame
@@ -154,6 +160,24 @@ namespace CASCLib
             if (uid.StartsWith("osi"))
                 return CASCGameType.D2R;
 
+            if (uid.StartsWith("wlby"))
+                return CASCGameType.Wlby;
+
+            if (uid.StartsWith("viper"))
+                return CASCGameType.Viper;
+
+            if (uid.StartsWith("odin"))
+                return CASCGameType.Odin;
+
+            if (uid.StartsWith("lazr"))
+                return CASCGameType.Lazarus;
+
+            if (uid.StartsWith("fore"))
+                return CASCGameType.Fore;
+
+            if (uid.StartsWith("zeus"))
+                return CASCGameType.Zeus;
+
             throw new Exception("Unable to detect game type by uid");
         }
 
@@ -184,8 +208,6 @@ namespace CASCLib
                 CASCGameType.HotS or
                 CASCGameType.S2 or
                 CASCGameType.S1 or
-                CASCGameType.WC3 or
-                CASCGameType.D2R or
                 CASCGameType.Overwatch;
         }
     }

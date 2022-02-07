@@ -8,7 +8,7 @@ namespace CASCLib
 {
     struct D3RootEntry
     {
-        public MD5Hash MD5;
+        public MD5Hash cKey;
         public int Type;
         public int SNO;
         public int FileIndex;
@@ -19,7 +19,7 @@ namespace CASCLib
             D3RootEntry e = new D3RootEntry()
             {
                 Type = type,
-                MD5 = s.Read<MD5Hash>()
+                cKey = s.Read<MD5Hash>()
             };
             if (type == 0 || type == 1) // has SNO id
             {
@@ -101,7 +101,7 @@ namespace CASCLib
             // Parse CoreTOC.dat
             var coreTocEntry = D3RootData["Base"].Find(e => e.Name == "CoreTOC.dat");
 
-            casc.Encoding.GetEntry(coreTocEntry.MD5, out EncodingEntry enc1);
+            casc.Encoding.GetEntry(coreTocEntry.cKey, out EncodingEntry enc1);
 
             using (var file = casc.OpenFile(enc1.Keys[0]))
                 tocParser = new CoreTOCParser(file);
@@ -111,7 +111,7 @@ namespace CASCLib
             // Parse Packages.dat
             var pkgEntry = D3RootData["Base"].Find(e => e.Name == "Data_D3\\PC\\Misc\\Packages.dat");
 
-            casc.Encoding.GetEntry(pkgEntry.MD5, out EncodingEntry enc2);
+            casc.Encoding.GetEntry(pkgEntry.cKey, out EncodingEntry enc2);
 
             using (var file = casc.OpenFile(enc2.Keys[0]))
                 pkgParser = new PackagesParser(file);
@@ -190,7 +190,7 @@ namespace CASCLib
 
             RootEntry entry = new RootEntry
             {
-                MD5 = e.MD5
+                cKey = e.cKey
             };
 
             if (Enum.TryParse(pkg, out LocaleFlags locale))

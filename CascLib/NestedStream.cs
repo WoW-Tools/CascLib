@@ -250,7 +250,7 @@ namespace CASCLib
         private void CheckDisposed()
         {
             if (IsDisposed)
-                throw new ObjectDisposedException(nameof(NestedStream));
+                throw new ObjectDisposedException(GetType().FullName);
         }
     }
 }

@@ -69,7 +69,7 @@ namespace CASCLib
 
     public struct RootEntry
     {
-        public MD5Hash MD5;
+        public MD5Hash cKey;
         public ContentFlags ContentFlags;
         public LocaleFlags LocaleFlags;
     }
@@ -156,7 +156,7 @@ namespace CASCLib
                 if (magic == TSFMMagic)
                 {
                     for (var i = 0; i < count; ++i)
-                        entries[i].MD5 = stream.Read<MD5Hash>();
+                        entries[i].cKey = stream.Read<MD5Hash>();
 
                     if ((contentFlags & ContentFlags.NoNameHash) == 0)
                     {
@@ -172,7 +172,7 @@ namespace CASCLib
 
                     for (var i = 0; i < count; ++i)
                     {
-                        entries[i].MD5 = stream.Read<MD5Hash>();
+                        entries[i].cKey = stream.Read<MD5Hash>();
                         nameHashes[i] = stream.ReadUInt64();
                     }
                 }
@@ -444,11 +444,11 @@ namespace CASCLib
 
                 foreach (var entry in fd.Value)
                 {
-                    Logger.WriteLine($"\tcKey: {entry.MD5.ToHexString()} Locale: {entry.LocaleFlags} CF: {entry.ContentFlags}");
+                    Logger.WriteLine($"\tcKey: {entry.cKey.ToHexString()} Locale: {entry.LocaleFlags} CF: {entry.ContentFlags}");
 
                     if (encodingHandler != null)
                     {
-                        if (encodingHandler.GetEntry(entry.MD5, out var encodingEntry))
+                        if (encodingHandler.GetEntry(entry.cKey, out var encodingEntry))
                         {
                             foreach (var eKey in encodingEntry.Keys)
                             {

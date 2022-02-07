@@ -3,13 +3,13 @@ using System.IO;
 
 namespace CASCLib
 {
-    public class HSRootHandler : RootHandlerBase
+    public class DummyRootHandler : RootHandlerBase
     {
-        public HSRootHandler(BinaryReader stream, BackgroundWorkerEx worker)
+        public DummyRootHandler(BinaryReader stream, BackgroundWorkerEx worker)
         {
             worker?.ReportProgress(0, "Loading \"root\"...");
 
-            // Hearthstone root file happened to be game executable! Just ignore it.
+            // root file is executable, skip
 
             worker?.ReportProgress(100);
         }

@@ -91,7 +91,7 @@ namespace CASCLib
 
                 byte[] newHash = _md5.ComputeHash(_reader.ReadBytes(_hasHeader ? headerSize : size));
 
-                if (!eKey.EqualsTo(newHash))
+                if (!eKey.EqualsTo9(newHash))
                     throw new BLTEDecoderException(0, "data corrupted");
 
                 _reader.BaseStream.Position = oldPos;

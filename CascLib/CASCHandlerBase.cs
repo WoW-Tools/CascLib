@@ -59,14 +59,14 @@ namespace CASCLib
         public void SaveFileTo(int fileDataId, string fullName, string extractPath) => SaveFileTo(FileDataHash.ComputeHash(fileDataId), extractPath, fullName);
         public abstract void SaveFileTo(ulong hash, string extractPath, string fullName);
 
-        public Stream OpenFile(in MD5Hash key)
+        public Stream OpenFile(in MD5Hash eKey)
         {
             try
             {
                 if (Config.OnlineMode)
-                    return OpenFileOnline(key);
+                    return OpenFileOnline(eKey);
                 else
-                    return OpenFileLocal(key);
+                    return OpenFileLocal(eKey);
             }
             catch (BLTEDecoderException exc) when (exc.ErrorCode == 3)
             {
@@ -76,49 +76,61 @@ namespace CASCLib
             }
             catch// (Exception exc) when (!(exc is BLTEDecoderException))
             {
-                return OpenFileOnline(key);
+                return OpenFileOnline(eKey);
             }
         }
 
-        protected abstract Stream OpenFileOnline(in MD5Hash key);
+        protected Stream OpenFileOnline(in MD5Hash eKey)
+        {
+            IndexEntry idxInfo = CDNIndex.GetIndexInfo(eKey);
+            return OpenFileOnlineInternal(idxInfo, eKey);
+        }
 
-        protected Stream OpenFileOnlineInternal(IndexEntry idxInfo, in MD5Hash key)
+        protected Stream OpenFileOnlineInternal(IndexEntry idxInfo, in MD5Hash eKey)
         {
             Stream s;
 
             if (idxInfo != null)
                 s = CDNIndex.OpenDataFile(idxInfo);
             else
-                s = CDNIndex.OpenDataFileDirect(key);
+                s = CDNIndex.OpenDataFileDirect(eKey);
 
             BLTEStream blte;
 
             try
             {
-                blte = new BLTEStream(s, key);
+                blte = new BLTEStream(s, eKey);
             }
             catch (BLTEDecoderException exc) when (exc.ErrorCode == 0)
             {
-                CDNCache.Instance.InvalidateFile(idxInfo != null ? Config.Archives[idxInfo.Index] : key.ToHexString());
-                return OpenFileOnlineInternal(idxInfo, key);
+                CDNCache.Instance.InvalidateFile(idxInfo != null ? Config.Archives[idxInfo.Index] : eKey.ToHexString());
+                return OpenFileOnlineInternal(idxInfo, eKey);
             }
 
             return blte;
         }
 
-        private Stream OpenFileLocal(in MD5Hash key)
+        private Stream OpenFileLocal(in MD5Hash eKey)
         {
-            Stream stream = GetLocalDataStream(key);
+            Stream stream = GetLocalDataStream(eKey);
 
-            return new BLTEStream(stream, key);
+            return new BLTEStream(stream, eKey);
         }
 
-        protected abstract Stream GetLocalDataStream(in MD5Hash key);
+        protected Stream GetLocalDataStream(in MD5Hash eKey)
+        {
+            IndexEntry idxInfo = LocalIndex.GetIndexInfo(eKey);
+            return GetLocalDataStreamInternal(idxInfo, eKey);
+        }
 
-        protected Stream GetLocalDataStreamInternal(IndexEntry idxInfo, in MD5Hash key)
+        protected Stream GetLocalDataStreamInternal(IndexEntry idxInfo, in MD5Hash eKey)
         {
             if (idxInfo == null)
-                throw new Exception("local index missing");
+            {
+                string message = $"Local index missing: {eKey.ToHexString()}";
+                Logger.WriteLine(message);
+                throw new Exception(message);
+            }
 
             MemoryMappedFile dataFile = GetDataStream(idxInfo.Index);
 
@@ -128,7 +140,7 @@ namespace CASCLib
                 byte[] md5 = reader.ReadBytes(16);
                 Array.Reverse(md5);
 
-                if (!key.EqualsTo9(md5))
+                if (!eKey.EqualsTo9(md5))
                     throw new Exception("local data corrupted");
 
                 int size = reader.ReadInt32();
@@ -148,22 +160,26 @@ namespace CASCLib
             }
         }
 
-        public void SaveFileTo(in MD5Hash key, string path, string name)
+        public void SaveFileTo(in MD5Hash eKey, string path, string name)
         {
             try
             {
                 if (Config.OnlineMode)
-                    ExtractFileOnline(key, path, name);
+                    ExtractFileOnline(eKey, path, name);
                 else
-                    ExtractFileLocal(key, path, name);
+                    ExtractFileLocal(eKey, path, name);
             }
             catch
             {
-                ExtractFileOnline(key, path, name);
+                ExtractFileOnline(eKey, path, name);
             }
         }
 
-        protected abstract void ExtractFileOnline(in MD5Hash key, string path, string name);
+        protected void ExtractFileOnline(in MD5Hash eKey, string path, string name)
+        {
+            IndexEntry idxInfo = CDNIndex.GetIndexInfo(eKey);
+            ExtractFileOnlineInternal(idxInfo, eKey, path, name);
+        }
 
         protected void ExtractFileOnlineInternal(IndexEntry idxInfo, in MD5Hash key, string path, string name)
         {
@@ -197,7 +213,7 @@ namespace CASCLib
 
         protected static BinaryReader OpenInstallFile(EncodingHandler enc, CASCHandlerBase casc)
         {
-            if (!enc.GetEntry(casc.Config.InstallMD5, out EncodingEntry encInfo))
+            if (!enc.GetEntry(casc.Config.InstallCKey, out EncodingEntry encInfo))
                 throw new FileNotFoundException("encoding info for install file missing!");
 
             //ExtractFile(encInfo.Key, ".", "install");
@@ -207,7 +223,7 @@ namespace CASCLib
 
         protected BinaryReader OpenDownloadFile(EncodingHandler enc, CASCHandlerBase casc)
         {
-            if (!enc.GetEntry(casc.Config.DownloadMD5, out EncodingEntry encInfo))
+            if (!enc.GetEntry(casc.Config.DownloadCKey, out EncodingEntry encInfo))
                 throw new FileNotFoundException("encoding info for download file missing!");
 
             //ExtractFile(encInfo.Key, ".", "download");
@@ -217,7 +233,7 @@ namespace CASCLib
 
         protected BinaryReader OpenRootFile(EncodingHandler enc, CASCHandlerBase casc)
         {
-            if (!enc.GetEntry(casc.Config.RootMD5, out EncodingEntry encInfo))
+            if (!enc.GetEntry(casc.Config.RootCKey, out EncodingEntry encInfo))
                 throw new FileNotFoundException("encoding info for root file missing!");
 
             //ExtractFile(encInfo.Key, ".", "root");
@@ -229,7 +245,7 @@ namespace CASCLib
         {
             //ExtractFile(Config.EncodingKey, ".", "encoding");
 
-            return new BinaryReader(casc.OpenFile(casc.Config.EncodingKey));
+            return new BinaryReader(casc.OpenFile(casc.Config.EncodingEKey));
         }
 
         private MemoryMappedFile GetDataStream(int index)

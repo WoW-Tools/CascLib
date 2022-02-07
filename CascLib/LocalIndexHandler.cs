@@ -23,7 +23,7 @@ namespace CASCLib
             var idxFiles = GetIdxFiles(config);
 
             if (idxFiles.Count == 0)
-                throw new FileNotFoundException("idx files missing!");
+                throw new FileNotFoundException("idx files are missing!");
 
             worker?.ReportProgress(0, "Loading \"local indexes\"...");
 
@@ -104,10 +104,10 @@ namespace CASCLib
             return latestIdx;
         }
 
-        public IndexEntry GetIndexInfo(in MD5Hash key)
+        public IndexEntry GetIndexInfo(in MD5Hash eKey)
         {
-            if (!LocalIndexData.TryGetValue(key, out IndexEntry result))
-                Logger.WriteLine("LocalIndexHandler: missing index: {0}", key.ToHexString());
+            if (!LocalIndexData.TryGetValue(eKey, out IndexEntry result))
+                Logger.WriteLine("LocalIndexHandler: missing EKey: {0}", eKey.ToHexString());
 
             return result;
         }

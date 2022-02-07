@@ -6,7 +6,7 @@ namespace CASCLib
 {
     public sealed class CASCHandlerLite : CASCHandlerBase
     {
-        private readonly Dictionary<ulong, MD5Hash> HashToKey = new Dictionary<ulong, MD5Hash>();
+        private readonly Dictionary<ulong, MD5Hash> HashToEKey = new Dictionary<ulong, MD5Hash>();
         private readonly Dictionary<int, ulong> FileDataIdToHash = new Dictionary<int, ulong>();
 
         private CASCHandlerLite(CASCConfig config, LocaleFlags locale, BackgroundWorkerEx worker) : base(config, worker)
@@ -48,11 +48,11 @@ namespace CASCLib
 
                 if ((rootEntry.LocaleFlags == locale || (rootEntry.LocaleFlags & locale) != LocaleFlags.None) && (rootEntry.ContentFlags & ContentFlags.Alternate) == ContentFlags.None)
                 {
-                    if (EncodingHandler.GetEntry(rootEntry.MD5, out EncodingEntry enc))
+                    if (EncodingHandler.GetEntry(rootEntry.cKey, out EncodingEntry enc))
                     {
-                        if (!HashToKey.ContainsKey(entry.Key))
+                        if (!HashToEKey.ContainsKey(entry.Key))
                         {
-                            HashToKey.Add(entry.Key, enc.Keys[0]);
+                            HashToEKey.Add(entry.Key, enc.Keys[0]);
                             FileDataIdToHash.Add(RootHandler.GetFileDataIdByHash(entry.Key), entry.Key);
                         }
                     }
@@ -65,25 +65,7 @@ namespace CASCLib
             EncodingHandler = null;
             GC.Collect();
 
-            Logger.WriteLine("CASCHandlerLite: loaded {0} files", HashToKey.Count);
-        }
-
-        protected override Stream OpenFileOnline(in MD5Hash key)
-        {
-            IndexEntry idxInfo = CDNIndex.GetIndexInfo(key);
-            return OpenFileOnlineInternal(idxInfo, key);
-        }
-
-        protected override Stream GetLocalDataStream(in MD5Hash key)
-        {
-            IndexEntry idxInfo = LocalIndex.GetIndexInfo(key);
-            return GetLocalDataStreamInternal(idxInfo, key);
-        }
-
-        protected override void ExtractFileOnline(in MD5Hash key, string path, string name)
-        {
-            IndexEntry idxInfo = CDNIndex.GetIndexInfo(key);
-            ExtractFileOnlineInternal(idxInfo, key, path, name);
+            Logger.WriteLine("CASCHandlerLite: loaded {0} files", HashToEKey.Count);
         }
 
         public static CASCHandlerLite OpenStorage(LocaleFlags locale, CASCConfig config, BackgroundWorkerEx worker = null)
@@ -117,7 +99,7 @@ namespace CASCLib
 
         public override bool FileExists(string file) => FileExists(Hasher.ComputeHash(file));
 
-        public override bool FileExists(ulong hash) => HashToKey.ContainsKey(hash);
+        public override bool FileExists(ulong hash) => HashToEKey.ContainsKey(hash);
 
         public override Stream OpenFile(int filedata)
         {
@@ -131,22 +113,25 @@ namespace CASCLib
 
         public override Stream OpenFile(ulong hash)
         {
-            if (HashToKey.TryGetValue(hash, out MD5Hash key))
-                return OpenFile(key);
+            if (HashToEKey.TryGetValue(hash, out MD5Hash eKey))
+                return OpenFile(eKey);
+
+            if (CASCConfig.ThrowOnFileNotFound)
+                throw new FileNotFoundException($"{hash:X16}");
 
             return null;
         }
 
         public override void SaveFileTo(ulong hash, string extractPath, string fullName)
         {
-            if (HashToKey.TryGetValue(hash, out MD5Hash key))
+            if (HashToEKey.TryGetValue(hash, out MD5Hash eKey))
             {
-                SaveFileTo(key, extractPath, fullName);
+                SaveFileTo(eKey, extractPath, fullName);
                 return;
             }
 
             if (CASCConfig.ThrowOnFileNotFound)
-                throw new FileNotFoundException(fullName);
+                throw new FileNotFoundException($"{hash:X16}");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -47,29 +48,34 @@ namespace CASCLib
 
             using (var _ = new PerfCounter("new RootHandler()"))
             {
-                using (var fs = OpenRootFile(EncodingHandler, this))
+                if (config.IsVfsRoot)
+                    RootHandler = new TVFSRootHandler(worker, this);
+                else
                 {
-                    if (config.GameType == CASCGameType.S2 || config.GameType == CASCGameType.HotS)
-                        RootHandler = new MNDXRootHandler(fs, worker);
-                    else if (config.GameType == CASCGameType.D3)
-                        RootHandler = new D3RootHandler(fs, worker, this);
-                    else if (config.GameType == CASCGameType.WoW)
-                        RootHandler = new WowRootHandler(fs, worker);
-                    else if (config.GameType == CASCGameType.Agent || config.GameType == CASCGameType.Bna || config.GameType == CASCGameType.Client)
-                        RootHandler = new AgentRootHandler(fs, worker);
-                    else if (config.GameType == CASCGameType.S1)
-                        RootHandler = new S1RootHandler(fs, worker);
-                    else if (config.GameType == CASCGameType.WC3 || config.GameType == CASCGameType.D2R)
-                        RootHandler = new Wc3RootHandler(fs, worker);
-                    else if (config.GameType == CASCGameType.Hearthstone)
-                        RootHandler = new HSRootHandler(fs, worker);
-                    else if (config.GameType == CASCGameType.Destiny2)
-                        RootHandler = new Destiny2RootHandler(fs, worker);
-                    else
+                    using (var fs = OpenRootFile(EncodingHandler, this))
                     {
-                        using (var ufs = new FileStream("unk_root", FileMode.Create))
-                            fs.BaseStream.CopyTo(ufs);
-                        throw new Exception("Unsupported game " + config.BuildUID);
+                        RootHandlerBase UnknownRootHandler()
+                        {
+                            using (var ufs = new FileStream("unk_root", FileMode.Create))
+                                fs.BaseStream.CopyTo(ufs);
+                            throw new Exception("Unsupported game " + config.BuildUID);
+                        }
+
+                        RootHandler = config.GameType switch
+                        {
+                            CASCGameType.S2 => new MNDXRootHandler(fs, worker),
+                            CASCGameType.HotS => new MNDXRootHandler(fs, worker),
+                            CASCGameType.D3 => new D3RootHandler(fs, worker, this),
+                            CASCGameType.WoW => new WowRootHandler(fs, worker),
+                            CASCGameType.S1 => new S1RootHandler(fs, worker),
+                            CASCGameType.Agent => new DummyRootHandler(fs, worker),
+                            CASCGameType.Bna => new DummyRootHandler(fs, worker),
+                            CASCGameType.Client => new DummyRootHandler(fs, worker),
+                            CASCGameType.Hearthstone => new DummyRootHandler(fs, worker),
+                            CASCGameType.Destiny2 => new DummyRootHandler(fs, worker),
+                            CASCGameType.Wlby => new DummyRootHandler(fs, worker),
+                            _ => UnknownRootHandler()
+                        };
                     }
                 }
             }
@@ -127,19 +133,24 @@ namespace CASCLib
 
         public override bool FileExists(ulong hash) => RootHandler.GetAllEntries(hash).Any();
 
-        public bool GetEncodingEntry(ulong hash, out EncodingEntry enc)
-        {
-            if (GetCKeyForHash(hash, out MD5Hash cKey))
-                return EncodingHandler.GetEntry(cKey, out enc);
-
-            enc = default;
-            return false;
-        }
-
         public long GetFileSize(ulong hash)
         {
-            if (GetEncodingEntry(hash, out EncodingEntry enc))
-                return enc.Size;
+            if (Root is TVFSRootHandler vfs)
+            {
+                var vfsEntries = vfs.GetVfsRootEntries(hash);
+                if (vfsEntries != null)
+                {
+                    if (vfsEntries.Count == 1)
+                        return vfsEntries[0].ContentLength;
+                    else
+                        return vfsEntries.Sum(e => (long)e.ContentLength);
+                }
+            }
+
+            if (GetCKeyForHash(hash, out MD5Hash cKey))
+                if (EncodingHandler.GetEntry(cKey, out EncodingEntry enc))
+                    return enc.Size;
+
             return 0;
         }
 
@@ -148,7 +159,7 @@ namespace CASCLib
             var rootInfos = RootHandler.GetEntries(hash);
             if (rootInfos.Any())
             {
-                cKey = rootInfos.First().MD5;
+                cKey = rootInfos.First().cKey;
                 return true;
             }
 
@@ -187,25 +198,52 @@ namespace CASCLib
             if (Root is WowRootHandler rh)
                 return OpenFile(rh.GetHashByFileDataId(fileDataId));
 
-            if (CASCConfig.ThrowOnFileNotFound)
-                throw new FileNotFoundException($"FileData: {fileDataId}");
-            return null;
+            throw new NotSupportedException("Opening files by FileDataId only supported for WoW");
         }
 
         public override Stream OpenFile(string name) => OpenFile(Hasher.ComputeHash(name));
 
         public override Stream OpenFile(ulong hash)
         {
+            if (Root is TVFSRootHandler vfs)
+            {
+                var vfsEntries = vfs.GetVfsRootEntries(hash);
+                if (vfsEntries.Count == 1)
+                {
+                    return OpenFile(vfsEntries[0].eKey);
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+
             if (GetEncodingKey(hash, out MD5Hash eKey))
                 return OpenFile(eKey);
 
             if (CASCConfig.ThrowOnFileNotFound)
                 throw new FileNotFoundException($"{hash:X16}");
+
             return null;
         }
 
         public override void SaveFileTo(ulong hash, string extractPath, string fullName)
         {
+            if (Root is TVFSRootHandler vfs)
+            {
+                var vfsEntries = vfs.GetVfsRootEntries(hash);
+                if (vfsEntries.Count == 1)
+                {
+                    SaveFileTo(vfsEntries[0].eKey, extractPath, fullName);
+                    return;
+                }
+                else
+                {
+                    SaveLargeFile(vfsEntries, extractPath, fullName);
+                    return;
+                }
+            }
+
             if (GetEncodingKey(hash, out MD5Hash eKey))
             {
                 SaveFileTo(eKey, extractPath, fullName);
@@ -213,29 +251,28 @@ namespace CASCLib
             }
 
             if (CASCConfig.ThrowOnFileNotFound)
-                throw new FileNotFoundException(fullName);
+                throw new FileNotFoundException($"{hash:X16}");
         }
 
-        protected override Stream OpenFileOnline(in MD5Hash key)
+        private void SaveLargeFile(List<VfsRootEntry> vfsEntries, string extractPath, string name)
         {
-            IndexEntry idxInfo = CDNIndex.GetIndexInfo(key);
-            return OpenFileOnlineInternal(idxInfo, key);
-        }
+            string fullPath = Path.Combine(extractPath, name);
+            string dir = Path.GetDirectoryName(fullPath);
 
-        protected override Stream GetLocalDataStream(in MD5Hash key)
-        {
-            IndexEntry idxInfo = LocalIndex.GetIndexInfo(key);
-            if (idxInfo == null)
+            DirectoryInfo dirInfo = new DirectoryInfo(dir);
+            if (!dirInfo.Exists)
+                dirInfo.Create();
+
+            using (var fileStream = File.Open(fullPath, FileMode.Create))
             {
-                Logger.WriteLine("Local index missing: {0}", key.ToHexString());
+                foreach (var entry in vfsEntries)
+                {
+                    using (Stream stream = OpenFile(entry.eKey))
+                    {
+                        stream.CopyTo(fileStream);
+                    }
+                }
             }
-            return GetLocalDataStreamInternal(idxInfo, key);
-        }
-
-        protected override void ExtractFileOnline(in MD5Hash key, string path, string name)
-        {
-            IndexEntry idxInfo = CDNIndex.GetIndexInfo(key);
-            ExtractFileOnlineInternal(idxInfo, key, path, name);
         }
 
         public void Clear()

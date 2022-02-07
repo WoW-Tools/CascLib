@@ -41,7 +41,7 @@ namespace CASCLib
 
     class CASC_ROOT_ENTRY_MNDX
     {
-        public MD5Hash MD5;         // Encoding key for the file
+        public MD5Hash cKey;         // Encoding key for the file
         public int Flags;           // High 8 bits: Flags, low 24 bits: package index
         public int FileSize;        // Uncompressed file size, in bytes
         public CASC_ROOT_ENTRY_MNDX Next;
@@ -144,7 +144,7 @@ namespace CASCLib
 
                 prevEntry = entry;
                 entry.Flags = stream.ReadInt32();
-                entry.MD5 = stream.Read<MD5Hash>();
+                entry.cKey = stream.Read<MD5Hash>();
                 entry.FileSize = stream.ReadInt32();
                 mndxRootEntries.Add(i, entry);
 
@@ -378,7 +378,7 @@ namespace CASCLib
                 int package = FindMNDXPackage(file);
                 entry.LocaleFlags = PackagesLocale[package];
                 entry.ContentFlags = ContentFlags.None;
-                entry.MD5 = FindMNDXInfo(file, package).MD5;
+                entry.cKey = FindMNDXInfo(file, package).cKey;
                 mndxData[fileHash] = entry;
 
                 //Console.WriteLine("{0:X8} - {1:X8} - {2} - {3}", result2.FileNameIndex, root.Flags, root.EncodingKey.ToHexString(), file);

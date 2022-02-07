@@ -18,7 +18,7 @@ namespace CASCLib
     public class CDNIndexHandler
     {
         private const int CHUNK_SIZE = 4096;
-        private Dictionary<MD5Hash, IndexEntry> CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer.Instance);
+        private Dictionary<MD5Hash, IndexEntry> CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(MD5HashComparer9.Instance);
         private CASCConfig config;
         private BackgroundWorkerEx worker;
 
@@ -284,10 +284,10 @@ namespace CASCLib
             }
         }
 
-        public IndexEntry GetIndexInfo(in MD5Hash key)
+        public IndexEntry GetIndexInfo(in MD5Hash eKey)
         {
-            if (!CDNIndexData.TryGetValue(key, out IndexEntry result))
-                Logger.WriteLine("CDNIndexHandler: missing index: {0}", key.ToHexString());
+            if (!CDNIndexData.TryGetValue(eKey, out IndexEntry result))
+                Logger.WriteLine("CDNIndexHandler: missing EKey: {0}", eKey.ToHexString());
 
             return result;
         }

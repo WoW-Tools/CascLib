@@ -16,6 +16,7 @@ namespace CASCLib
     public class EncodingHandler
     {
         private Dictionary<MD5Hash, EncodingEntry> EncodingData = new Dictionary<MD5Hash, EncodingEntry>(MD5HashComparer.Instance);
+        private Dictionary<MD5Hash, MD5Hash> EKeyToCKey = new Dictionary<MD5Hash, MD5Hash>(MD5HashComparer9.Instance);
         private Dictionary<MD5Hash, List<ulong>> EncryptionData = new Dictionary<MD5Hash, List<ulong>>(MD5HashComparer.Instance);
         private const int CHUNK_SIZE = 4096;
 
@@ -76,6 +77,7 @@ namespace CASCLib
                     {
                         MD5Hash eKey = stream.Read<MD5Hash>();
                         entry.Keys.Add(eKey);
+                        EKeyToCKey.Add(eKey, cKey);
                         //Logger.WriteLine($"Encoding {i:D7} {ki:D2} {cKey.ToHexString()} {eKey.ToHexString()} {fileSize}");
                     }
 
@@ -184,6 +186,11 @@ namespace CASCLib
             }
             eKey = entry.Keys[0];
             return true;
+        }
+
+        public bool GetCKeyFromEKey(in MD5Hash eKey, out MD5Hash cKey)
+        {
+            return EKeyToCKey.TryGetValue(eKey, out cKey);
         }
 
         public IReadOnlyList<ulong> GetEncryptionKeys(in MD5Hash eKey)

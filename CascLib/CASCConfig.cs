@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace CASCLib
 {
@@ -73,16 +74,18 @@ namespace CASCLib
 
     public class KeyValueConfig
     {
-        private readonly Dictionary<string, List<string>> Data = new Dictionary<string, List<string>>();
+        private readonly Dictionary<string, List<string>> m_data = new Dictionary<string, List<string>>();
 
         public List<string> this[string key]
         {
             get
             {
-                Data.TryGetValue(key, out List<string> ret);
+                m_data.TryGetValue(key, out List<string> ret);
                 return ret;
             }
         }
+
+        public IReadOnlyDictionary<string, List<string>> Values => m_data;
 
         public static KeyValueConfig ReadKeyValueConfig(Stream stream)
         {
@@ -107,7 +110,7 @@ namespace CASCLib
 
                 var values = tokens[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 var valuesList = values.ToList();
-                result.Data.Add(tokens[0].Trim(), valuesList);
+                result.m_data.Add(tokens[0].Trim(), valuesList);
             }
             return result;
         }
@@ -337,13 +340,13 @@ namespace CASCLib
 
         public string Product { get; private set; }
 
-        public MD5Hash RootMD5 => _Builds[ActiveBuild]["root"][0].FromHexString().ToMD5();
+        public MD5Hash RootCKey => _Builds[ActiveBuild]["root"][0].FromHexString().ToMD5();
 
-        public MD5Hash InstallMD5 => _Builds[ActiveBuild]["install"][0].FromHexString().ToMD5();
+        public MD5Hash InstallCKey => _Builds[ActiveBuild]["install"][0].FromHexString().ToMD5();
 
         public string InstallSize => _Builds[ActiveBuild]["install-size"][0];
 
-        public MD5Hash DownloadMD5 => _Builds[ActiveBuild]["download"][0].FromHexString().ToMD5();
+        public MD5Hash DownloadCKey => _Builds[ActiveBuild]["download"][0].FromHexString().ToMD5();
 
         public string DownloadSize => _Builds[ActiveBuild]["download-size"][0];
 
@@ -351,19 +354,50 @@ namespace CASCLib
 
         //public string PartialPrioritySize => _Builds[ActiveBuild]["partial-priority-size"][0];
 
-        public MD5Hash EncodingMD5 => _Builds[ActiveBuild]["encoding"][0].FromHexString().ToMD5();
+        public MD5Hash EncodingCKey => _Builds[ActiveBuild]["encoding"][0].FromHexString().ToMD5();
 
-        public MD5Hash EncodingKey => _Builds[ActiveBuild]["encoding"][1].FromHexString().ToMD5();
+        public MD5Hash EncodingEKey => _Builds[ActiveBuild]["encoding"][1].FromHexString().ToMD5();
 
         public string EncodingSize => _Builds[ActiveBuild]["encoding-size"][0];
 
-        public MD5Hash PatchKey => _Builds[ActiveBuild]["patch"][0].FromHexString().ToMD5();
+        public MD5Hash PatchEKey => _Builds[ActiveBuild]["patch"][0].FromHexString().ToMD5();
 
         public string PatchSize => _Builds[ActiveBuild]["patch-size"][0];
 
         public string BuildUID => _Builds[ActiveBuild]["build-uid"][0];
 
         public string BuildName => _Builds[ActiveBuild]["build-name"][0];
+
+        public bool IsVfsRoot => _Builds[ActiveBuild]["vfs-root"] != null;
+
+        public MD5Hash VfsRootCKey => _Builds[ActiveBuild]["vfs-root"][0].FromHexString().ToMD5();
+
+        public MD5Hash VfsRootEKey => _Builds[ActiveBuild]["vfs-root"][1].FromHexString().ToMD5();
+
+        public List<(MD5Hash CKey, MD5Hash EKey)> VfsRootList => GetVfsRootList();
+
+        private List<(MD5Hash CKey, MD5Hash EKey)> GetVfsRootList()
+        {
+            if (!IsVfsRoot)
+                return null;
+
+            var list = new List<(MD5Hash CKey, MD5Hash EKey)>();
+
+            var build = _Builds[ActiveBuild];
+
+            var regex = new Regex("(^vfs-\\d+$)");
+
+            foreach (var kvp in build.Values)
+            {
+                Match match = regex.Match(kvp.Key);
+                if (match.Success)
+                {
+                    list.Add((kvp.Value[0].FromHexString().ToMD5(), kvp.Value[1].FromHexString().ToMD5()));
+                }
+            }
+
+            return list;
+        }
 
         private int cdnHostIndex;
 

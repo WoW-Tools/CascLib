@@ -13,8 +13,12 @@ namespace CASCLib
     {
         public static int ReadInt32BE(this BinaryReader reader)
         {
-            byte[] val = reader.ReadBytes(4);
-            return val[3] | val[2] << 8 | val[1] << 16 | val[0] << 24;
+            int val = reader.ReadInt32();
+            int ret = (val >> 24 & 0xFF) << 0;
+            ret |= (val >> 16 & 0xFF) << 8;
+            ret |= (val >> 8 & 0xFF) << 16;
+            ret |= (val >> 0 & 0xFF) << 24;
+            return ret;
         }
 
         public static long ReadInt40BE(this BinaryReader reader)
@@ -26,6 +30,12 @@ namespace CASCLib
         public static void Skip(this BinaryReader reader, int bytes)
         {
             reader.BaseStream.Position += bytes;
+        }
+
+        public static ushort ReadUInt16BE(this BinaryReader reader)
+        {
+            byte[] val = reader.ReadBytes(2);
+            return (ushort)(val[1] | val[0] << 8);
         }
 
         public static uint ReadUInt32BE(this BinaryReader reader)
@@ -184,6 +194,11 @@ namespace CASCLib
 
             ref MD5Hash other = ref Unsafe.As<byte, MD5Hash>(ref array[0]);
 
+            return EqualsTo9(key, other);
+        }
+
+        public static bool EqualsTo9(this in MD5Hash key, in MD5Hash other)
+        {
             if (key.lowPart != other.lowPart)
                 return false;
 

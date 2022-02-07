@@ -31,12 +31,8 @@ namespace CASCLib
                     {
                         string[] tokens2 = tokens[0].Split(':');
 
-                        if (tokens2.Length == 2)
-                            file = tokens2[0] + "\\" + tokens2[1];
-                        else if (tokens2.Length == 3)
-                            file = tokens2[0] + "\\" + tokens2[1] + "\\" + tokens2[2];
-                        else if (tokens2.Length == 4)
-                            file = tokens2[0] + "\\" + tokens2[1] + "\\" + tokens2[2] + "\\" + tokens2[3];
+                        if (tokens2.Length == 2 || tokens2.Length == 3 || tokens2.Length == 4)
+                            file = Path.Combine(tokens2);
                         else
                             throw new InvalidDataException("tokens2.Length");
                     }
@@ -56,7 +52,7 @@ namespace CASCLib
                     {
                         LocaleFlags = locale,
                         ContentFlags = ContentFlags.None,
-                        MD5 = tokens[1].FromHexString().ToMD5()
+                        cKey = tokens[1].FromHexString().ToMD5()
                     };
 
                     CASCFile.Files[fileHash] = new CASCFile(fileHash, file);
