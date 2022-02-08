@@ -117,7 +117,7 @@ namespace CASCLib
                 return 0;
             }
 
-            int bytesRead = await this.underlyingStream.ReadAsync(buffer, offset, count).ConfigureAwait(false);
+            int bytesRead = await this.underlyingStream.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
             this.remainingBytes -= bytesRead;
             return bytesRead;
         }
@@ -250,7 +250,7 @@ namespace CASCLib
         private void CheckDisposed()
         {
             if (IsDisposed)
-                throw new ObjectDisposedException(GetType().FullName);
+                throw new ObjectDisposedException(nameof(NestedStream));
         }
     }
 }
