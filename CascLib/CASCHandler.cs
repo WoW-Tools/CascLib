@@ -58,7 +58,7 @@ namespace CASCLib
                         {
                             using (var ufs = new FileStream("unk_root", FileMode.Create))
                                 fs.BaseStream.CopyTo(ufs);
-                            throw new Exception("Unsupported game " + config.BuildUID);
+                            throw new Exception("Unsupported game " + config.BuildProduct);
                         }
 
                         RootHandler = config.GameType switch
@@ -74,6 +74,7 @@ namespace CASCLib
                             CASCGameType.Hearthstone => new DummyRootHandler(fs, worker),
                             CASCGameType.Destiny2 => new DummyRootHandler(fs, worker),
                             CASCGameType.Wlby => new DummyRootHandler(fs, worker),
+                            CASCGameType.Rtro => new DummyRootHandler(fs, worker),
                             _ => UnknownRootHandler()
                         };
                     }

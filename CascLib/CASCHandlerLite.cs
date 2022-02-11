@@ -73,9 +73,9 @@ namespace CASCLib
             return Open(locale, worker, config);
         }
 
-        public static CASCHandlerLite OpenLocalStorage(string basePath, LocaleFlags locale, string product = null, BackgroundWorkerEx worker = null)
+        public static CASCHandlerLite OpenLocalStorage(string basePath, LocaleFlags locale, string product, BackgroundWorkerEx worker = null)
         {
-            CASCConfig config = CASCConfig.LoadLocalStorageConfig(basePath);
+            CASCConfig config = CASCConfig.LoadLocalStorageConfig(basePath, product);
 
             return Open(locale, worker, config);
         }
