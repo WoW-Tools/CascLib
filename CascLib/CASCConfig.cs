@@ -137,6 +137,11 @@ namespace CASCLib
 
         public static CASCConfig LoadOnlineStorageConfig(string product, string region, bool useCurrentBuild = false, ILoggerOptions loggerOptions = null)
         {
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
+            if (region == null)
+                throw new ArgumentNullException(nameof(region));
+
             Logger.Init(loggerOptions);
 
             var config = new CASCConfig { OnlineMode = true, Region = region, Product = product };
@@ -233,6 +238,11 @@ namespace CASCLib
 
         public static CASCConfig LoadLocalStorageConfig(string basePath, string product, ILoggerOptions loggerOptions = null)
         {
+            if (basePath == null)
+                throw new ArgumentNullException(nameof(basePath));
+            if (product == null)
+                throw new ArgumentNullException(nameof(product));
+
             string buildInfoPath = Path.Combine(basePath, ".build.info");
 
             if (!File.Exists(buildInfoPath))
