@@ -140,33 +140,21 @@ namespace CASCLib
         {
             public Salsa20CryptoTransform(byte[] key, byte[] iv, int rounds)
             {
-                Debug.Assert(key.Length == 16 || key.Length == 32, "abyKey.Length == 16 || abyKey.Length == 32", "Invalid key size.");
-                Debug.Assert(iv.Length == 8, "abyIV.Length == 8", "Invalid IV size.");
+                Debug.Assert(key.Length == 16 || key.Length == 32, "key.Length == 16 || key.Length == 32", "Invalid key size.");
+                Debug.Assert(iv.Length == 8, "iv.Length == 8", "Invalid IV size.");
                 Debug.Assert(rounds == 8 || rounds == 12 || rounds == 20, "rounds == 8 || rounds == 12 || rounds == 20", "Invalid number of rounds.");
 
                 Initialize(key, iv);
                 m_rounds = rounds;
             }
 
-            public bool CanReuseTransform
-            {
-                get { return false; }
-            }
+            public bool CanReuseTransform => false;
 
-            public bool CanTransformMultipleBlocks
-            {
-                get { return true; }
-            }
+            public bool CanTransformMultipleBlocks => true;
 
-            public int InputBlockSize
-            {
-                get { return 64; }
-            }
+            public int InputBlockSize => 64;
 
-            public int OutputBlockSize
-            {
-                get { return 64; }
-            }
+            public int OutputBlockSize => 64;
 
             public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
             {
