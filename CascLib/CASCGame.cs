@@ -55,30 +55,28 @@ namespace CASCLib
         {
             return uid switch
             {
-                { } when uid.StartsWith("hero") => CASCGameType.HotS,
-                { } when uid.StartsWith("hs") => CASCGameType.Hearthstone,
-                { } when uid.StartsWith("w3") => CASCGameType.WC3,
-                { } when uid.StartsWith("s1") => CASCGameType.S1,
-                { } when uid.StartsWith("s2") => CASCGameType.S2,
-                { } when uid.StartsWith("wow") => CASCGameType.WoW,
-                { } when uid.StartsWith("d3") => CASCGameType.D3,
-                { } when uid.StartsWith("agent") => CASCGameType.Agent,
-                { } when uid.StartsWith("pro") => CASCGameType.Overwatch,
-                { } when uid.StartsWith("bna") => CASCGameType.Bna,
-                { } when uid.StartsWith("clnt") => CASCGameType.Client,
-                { } when uid.StartsWith("dst2") => CASCGameType.Destiny2,
-                { } when uid.StartsWith("osi") => CASCGameType.D2R,
-                { } when uid.StartsWith("wlby") => CASCGameType.Wlby,
-                { } when uid.StartsWith("viper") => CASCGameType.Viper,
-                { } when uid.StartsWith("odin") => CASCGameType.Odin,
-                { } when uid.StartsWith("lazr") => CASCGameType.Lazarus,
-                { } when uid.StartsWith("fore") => CASCGameType.Fore,
-                { } when uid.StartsWith("zeus") => CASCGameType.Zeus,
-                { } when uid.StartsWith("rtro") => CASCGameType.Rtro,
+                _ when uid.StartsWith("hero") => CASCGameType.HotS,
+                _ when uid.StartsWith("hs") => CASCGameType.Hearthstone,
+                _ when uid.StartsWith("w3") => CASCGameType.WC3,
+                _ when uid.StartsWith("s1") => CASCGameType.S1,
+                _ when uid.StartsWith("s2") => CASCGameType.S2,
+                _ when uid.StartsWith("wow") => CASCGameType.WoW,
+                _ when uid.StartsWith("d3") => CASCGameType.D3,
+                _ when uid.StartsWith("agent") => CASCGameType.Agent,
+                _ when uid.StartsWith("pro") => CASCGameType.Overwatch,
+                _ when uid.StartsWith("bna") => CASCGameType.Bna,
+                _ when uid.StartsWith("clnt") => CASCGameType.Client,
+                _ when uid.StartsWith("dst2") => CASCGameType.Destiny2,
+                _ when uid.StartsWith("osi") => CASCGameType.D2R,
+                _ when uid.StartsWith("wlby") => CASCGameType.Wlby,
+                _ when uid.StartsWith("viper") => CASCGameType.Viper,
+                _ when uid.StartsWith("odin") => CASCGameType.Odin,
+                _ when uid.StartsWith("lazr") => CASCGameType.Lazarus,
+                _ when uid.StartsWith("fore") => CASCGameType.Fore,
+                _ when uid.StartsWith("zeus") => CASCGameType.Zeus,
+                _ when uid.StartsWith("rtro") => CASCGameType.Rtro,
                 _ => throw new Exception("Unable to detect game type by uid")
             };
-
-            throw new Exception("Unable to detect game type by uid");
         }
 
         public static string GetDataFolder(CASCGameType gameType)
