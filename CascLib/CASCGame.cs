@@ -24,7 +24,8 @@ namespace CASCLib
         Lazarus,
         Fore,
         Zeus,
-        Rtro
+        Rtro,
+        Anbs
     }
 
     public class CASCGame
@@ -75,6 +76,7 @@ namespace CASCLib
                 _ when uid.StartsWith("fore") => CASCGameType.Fore,
                 _ when uid.StartsWith("zeus") => CASCGameType.Zeus,
                 _ when uid.StartsWith("rtro") => CASCGameType.Rtro,
+                _ when uid.StartsWith("anbs") => CASCGameType.Anbs,
                 _ => throw new Exception("Unable to detect game type by uid")
             };
         }

@@ -75,6 +75,7 @@ namespace CASCLib
                             CASCGameType.Destiny2 => new DummyRootHandler(fs, worker),
                             CASCGameType.Wlby => new DummyRootHandler(fs, worker),
                             CASCGameType.Rtro => new DummyRootHandler(fs, worker),
+                            CASCGameType.Anbs => new DummyRootHandler(fs, worker),
                             _ => UnknownRootHandler()
                         };
                     }
