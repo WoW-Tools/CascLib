@@ -152,7 +152,7 @@ namespace CASCLib
             }
             catch (Exception exc)
             {
-                throw new Exception($"DownloadFile failed: {archive} - {exc}");
+                throw new Exception($"DownloadIndexFile failed: {archive} - {exc}");
             }
         }
 
@@ -176,7 +176,7 @@ namespace CASCLib
             }
             catch (Exception exc)
             {
-                throw new Exception($"OpenFile failed: {archive} - {exc}");
+                throw new Exception($"OpenIndexFile failed: {archive} - {exc}");
             }
         }
 

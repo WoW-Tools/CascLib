@@ -10,6 +10,7 @@ namespace CASCLib
     {
         protected LocalIndexHandler LocalIndex;
         protected CDNIndexHandler CDNIndex;
+        protected FileIndexHandler FileIndex;
 
         protected static readonly Jenkins96 Hasher = new Jenkins96();
 
@@ -28,6 +29,11 @@ namespace CASCLib
             using (var _ = new PerfCounter("CDNIndexHandler.Initialize()"))
             {
                 CDNIndex = CDNIndexHandler.Initialize(config, worker);
+            }
+
+            using (var _ = new PerfCounter("FileIndexHandler()"))
+            {
+                FileIndex = new FileIndexHandler(config);
             }
 
             Logger.WriteLine("CASCHandlerBase: loaded {0} CDN indexes", CDNIndex.Count);
@@ -181,20 +187,23 @@ namespace CASCLib
             ExtractFileOnlineInternal(idxInfo, eKey, path, name);
         }
 
-        protected void ExtractFileOnlineInternal(IndexEntry idxInfo, in MD5Hash key, string path, string name)
+        protected void ExtractFileOnlineInternal(IndexEntry idxInfo, in MD5Hash eKey, string path, string name)
         {
             if (idxInfo != null)
             {
                 using (Stream s = CDNIndex.OpenDataFile(idxInfo))
-                using (BLTEStream blte = new BLTEStream(s, key))
+                using (BLTEStream blte = new BLTEStream(s, eKey))
                 {
                     blte.ExtractToFile(path, name);
                 }
             }
             else
             {
-                using (Stream s = CDNIndex.OpenDataFileDirect(key))
-                using (BLTEStream blte = new BLTEStream(s, key))
+                MD5Hash tempEKey = eKey;
+                if (FileIndex.GetFullEKey(eKey, out var fullEKey))
+                    tempEKey = fullEKey;
+                using (Stream s = CDNIndex.OpenDataFileDirect(tempEKey))
+                using (BLTEStream blte = new BLTEStream(s, tempEKey))
                 {
                     blte.ExtractToFile(path, name);
                 }
