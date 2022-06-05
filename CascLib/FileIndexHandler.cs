@@ -80,6 +80,8 @@ namespace CASCLib
                 {
                     MD5Hash key = br.Read<MD5Hash>();
 
+                    br.ReadInt32BE(); // skip size
+
                     FileIndexData.Add(key);
 
                     // each chunk is 4096 bytes, and zero padding at the end
