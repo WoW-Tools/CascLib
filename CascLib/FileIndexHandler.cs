@@ -4,11 +4,9 @@ using System.IO;
 
 namespace CASCLib
 {
-    public class FileIndexHandler
+    public class FileIndexHandler : IndexHandlerBase
     {
-        private const int CHUNK_SIZE = 4096;
         private HashSet<MD5Hash> FileIndexData = new HashSet<MD5Hash>(MD5HashComparer9.Instance);
-        private CASCConfig config;
 
         public ISet<MD5Hash> Data => FileIndexData;
         public int Count => FileIndexData.Count;
@@ -18,12 +16,12 @@ namespace CASCLib
             config = cascConfig;
 
             if (config.OnlineMode)
-                DownloadIndexFile(config.FileIndex);
+                DownloadIndexFile(config.FileIndex, 0);
             else
-                OpenIndexFile(config.FileIndex);
+                OpenIndexFile(config.FileIndex, 0);
         }
 
-        private void ParseIndex(Stream stream)
+        protected override void ParseIndex(Stream stream, int dataIndex)
         {
             using (var br = new BinaryReader(stream))
             {
@@ -93,66 +91,6 @@ namespace CASCLib
                         stream.Position += remaining;
                     }
                 }
-            }
-        }
-
-        private void DownloadIndexFile(string archive)
-        {
-            try
-            {
-                string file = Utils.MakeCDNPath(config.CDNPath, "data", archive + ".index");
-
-                Stream stream = CDNCache.Instance.OpenFile(file);
-
-                if (stream != null)
-                {
-                    using (stream)
-                        ParseIndex(stream);
-                }
-                else
-                {
-                    string url = Utils.MakeCDNUrl(config.CDNHost, file);
-
-                    using (var fs = OpenFile(url))
-                        ParseIndex(fs);
-                }
-            }
-            catch (Exception exc)
-            {
-                throw new Exception($"DownloadIndexFile failed: {archive} - {exc}");
-            }
-        }
-
-        private void OpenIndexFile(string archive)
-        {
-            try
-            {
-                string dataFolder = CASCGame.GetDataFolder(config.GameType);
-
-                string path = Path.Combine(config.BasePath, dataFolder, "indices", archive + ".index");
-
-                if (File.Exists(path))
-                {
-                    using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                        ParseIndex(fs);
-                }
-                else
-                {
-                    DownloadIndexFile(archive);
-                }
-            }
-            catch (Exception exc)
-            {
-                throw new Exception($"OpenIndexFile failed: {archive} - {exc}");
-            }
-        }
-
-        private Stream OpenFile(string url)
-        {
-            using (var resp = Utils.HttpWebResponseGet(url))
-            using (Stream stream = resp.GetResponseStream())
-            {
-                return stream.CopyToMemoryStream(resp.ContentLength);
             }
         }
 
