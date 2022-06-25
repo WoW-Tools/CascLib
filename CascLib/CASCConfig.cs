@@ -147,14 +147,14 @@ namespace CASCLib
             var config = new CASCConfig { OnlineMode = true, Region = region, Product = product };
 
             using (var ribbit = new RibbitClient("us"))
-            using (var cdnsStream = ribbit.GetAsStream($"v1/products/{product}/cdns"))
+            using (var cdnsStream = ribbit.GetProductInfoStream(product, ProductInfoType.Cdns))
             //using (var cdnsStream = CDNIndexHandler.OpenFileDirect(string.Format("http://us.patch.battle.net:1119/{0}/cdns", product)))
             {
                 config._CdnsData = VerBarConfig.ReadVerBarConfig(cdnsStream);
             }
 
             using (var ribbit = new RibbitClient("us"))
-            using (var versionsStream = ribbit.GetAsStream($"v1/products/{product}/versions"))
+            using (var versionsStream = ribbit.GetProductInfoStream(product, ProductInfoType.Versions))
             //using (var versionsStream = CDNIndexHandler.OpenFileDirect(string.Format("http://us.patch.battle.net:1119/{0}/versions", product)))
             {
                 config._VersionsData = VerBarConfig.ReadVerBarConfig(versionsStream);

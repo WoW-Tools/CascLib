@@ -7,12 +7,12 @@ namespace CASCLib
     {
         public static string MakeCDNPath(string cdnPath, string folder, string fileName)
         {
-            return cdnPath + "/" + folder + "/" + fileName.Substring(0, 2) + "/" + fileName.Substring(2, 2) + "/" + fileName;
+            return $"{cdnPath}/{folder}/{fileName.Substring(0, 2)}/{fileName.Substring(2, 2)}/{fileName}";
         }
 
         public static string MakeCDNUrl(string cdnHost, string cdnPath)
         {
-            return "http://" + cdnHost + "/" + cdnPath;
+            return $"http://{cdnHost}/{cdnPath}";
         }
 
         private static HttpWebResponse HttpWebResponse(string url, string method = "GET", int? from = null, int? to = null, int numRetries = 0)
