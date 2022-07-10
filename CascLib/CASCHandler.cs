@@ -269,7 +269,10 @@ namespace CASCLib
             {
                 foreach (var entry in vfsEntries)
                 {
-                    using (Stream stream = OpenFile(entry.eKey))
+                    MD5Hash tempEKey = entry.eKey;
+                    if (FileIndex.GetFullEKey(entry.eKey, out var fullEKey))
+                        tempEKey = fullEKey;
+                    using (Stream stream = OpenFile(tempEKey))
                     {
                         stream.CopyTo(fileStream);
                     }
