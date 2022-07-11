@@ -37,17 +37,20 @@ namespace CASCLib
             }
         }
 
-        public string GetProductInfo(string product, ProductInfoType infoType)
+        private string MakeRequestString(string product, ProductInfoType infoType)
         {
-            string req = infoType switch
+            return infoType switch
             {
                 ProductInfoType.Versions => $"v{version}/product/{product}/versions",
                 ProductInfoType.Cdns => $"v{version}/product/{product}/cdns",
                 ProductInfoType.Bgdl => $"v{version}/product/{product}/bgdl",
                 _ => throw new InvalidOperationException()
             };
+        }
 
-            return Get(req);
+        public string GetProductInfo(string product, ProductInfoType infoType)
+        {
+            return Get(MakeRequestString(product, infoType));
         }
 
         public Stream GetAsStream(string request)
@@ -57,15 +60,7 @@ namespace CASCLib
 
         public Stream GetProductInfoStream(string product, ProductInfoType infoType)
         {
-            string req = infoType switch
-            {
-                ProductInfoType.Versions => $"v{version}/product/{product}/versions",
-                ProductInfoType.Cdns => $"v{version}/product/{product}/cdns",
-                ProductInfoType.Bgdl => $"v{version}/product/{product}/bgdl",
-                _ => throw new InvalidOperationException()
-            };
-
-            return GetAsStream(req);
+            return GetAsStream(MakeRequestString(product, infoType));
         }
 
         public void Dispose()
