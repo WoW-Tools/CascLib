@@ -41,9 +41,9 @@ namespace CASCLib
         {
             return infoType switch
             {
-                ProductInfoType.Versions => $"v{version}/product/{product}/versions",
-                ProductInfoType.Cdns => $"v{version}/product/{product}/cdns",
-                ProductInfoType.Bgdl => $"v{version}/product/{product}/bgdl",
+                ProductInfoType.Versions => $"v{version}/products/{product}/versions",
+                ProductInfoType.Cdns => $"v{version}/products/{product}/cdns",
+                ProductInfoType.Bgdl => $"v{version}/products/{product}/bgdl",
                 _ => throw new InvalidOperationException()
             };
         }
