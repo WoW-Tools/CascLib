@@ -59,7 +59,7 @@ namespace CASCLib
                 byte version = br.ReadByte();
 
                 if (version != 1)
-                    throw new InvalidDataException("ParseIndex -> version");
+                    throw new InvalidDataException($"Unsupported CDN index version: {version}. This client only supports versions <= {1}");
 
                 byte unk1 = br.ReadByte();
 
@@ -91,10 +91,10 @@ namespace CASCLib
                 if (keySizeBytes != 16)
                     throw new InvalidDataException("ParseIndex -> keySizeBytes");
 
-                byte checksumSize = br.ReadByte();
+                byte hashSize = br.ReadByte();
 
-                if (checksumSize != 8)
-                    throw new InvalidDataException("ParseIndex -> checksumSize");
+                if (hashSize != 8)
+                    throw new InvalidDataException("ParseIndex -> hashSize");
 
                 int numElements = br.ReadInt32();
 

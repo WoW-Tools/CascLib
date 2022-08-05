@@ -11,6 +11,11 @@ namespace CASCLib
         public ISet<MD5Hash> Data => FileIndexData;
         public int Count => FileIndexData.Count;
 
+        public FileIndexHandler(Stream stream)
+        {
+            ParseIndex(stream, 0);
+        }
+
         public FileIndexHandler(CASCConfig cascConfig)
         {
             config = cascConfig;
@@ -62,10 +67,10 @@ namespace CASCLib
                 if (keySizeBytes != 16)
                     throw new InvalidDataException("ParseIndex -> keySizeBytes");
 
-                byte checksumSize = br.ReadByte();
+                byte hashSize = br.ReadByte();
 
-                if (checksumSize != 8)
-                    throw new InvalidDataException("ParseIndex -> checksumSize");
+                if (hashSize != 8)
+                    throw new InvalidDataException("ParseIndex -> hashSize");
 
                 int numElements = br.ReadInt32();
 

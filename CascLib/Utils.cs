@@ -10,6 +10,11 @@ namespace CASCLib
             return $"{cdnPath}/{folder}/{fileName.Substring(0, 2)}/{fileName.Substring(2, 2)}/{fileName}";
         }
 
+        public static string MakeCDNPath(string cdnPath, string fileName)
+        {
+            return $"{cdnPath}/{fileName.Substring(0, 2)}/{fileName.Substring(2, 2)}/{fileName}";
+        }
+
         public static string MakeCDNUrl(string cdnHost, string cdnPath)
         {
             return $"http://{cdnHost}/{cdnPath}";
@@ -19,8 +24,9 @@ namespace CASCLib
         {
             if (numRetries >= 5)
             {
-                Logger.WriteLine($"Utils: HttpWebResponse for {url} failed after 5 tries");
-                return null;
+                string message = $"Utils: HttpWebResponse for {url} failed after 5 tries";
+                Logger.WriteLine(message);
+                throw new WebException(message);
             }
 
             HttpWebRequest req = WebRequest.CreateHttp(url);
@@ -50,8 +56,9 @@ namespace CASCLib
                     }
                     else
                     {
-                        Logger.WriteLine($"Utils: error at HttpWebResponse {url}: Status {exc.Status}, StatusCode {resp.StatusCode}");
-                        return null;
+                        string message = $"Utils: error at HttpWebResponse {url}: Status {exc.Status}, StatusCode {resp.StatusCode}";
+                        Logger.WriteLine(message);
+                        throw new WebException(message);
                     }
                 }
             }

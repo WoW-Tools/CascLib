@@ -171,6 +171,14 @@ namespace CASCLib
                     config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
                 }
             }
+            else if (File.Exists("fakecdnconfighash"))
+            {
+                string cdnKey = File.ReadAllText("fakecdnconfighash");
+                using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, cdnKey))
+                {
+                    config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
+                }
+            }
             else
             {
                 string cdnKey = config.GetVersionsVariable("CDNConfig").ToLower();
@@ -217,6 +225,15 @@ namespace CASCLib
             if (File.Exists("fakebuildconfig"))
             {
                 using (Stream stream = new FileStream("fakebuildconfig", FileMode.Open))
+                {
+                    var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
+                    config._Builds.Add(cfg);
+                }
+            }
+            else if (File.Exists("fakebuildconfighash"))
+            {
+                string buildKey = File.ReadAllText("fakebuildconfighash");
+                using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, buildKey))
                 {
                     var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
                     config._Builds.Add(cfg);
@@ -443,7 +460,7 @@ namespace CASCLib
 
         private static string GetConfigVariable(VerBarConfig config, string filterParamName, string filterParamValue, string varName)
         {
-            if (!HasConfigVariable(config, filterParamName))
+            if (config.Count == 1 || !HasConfigVariable(config, filterParamName))
             {
                 if (config[0].TryGetValue(varName, out string varValue))
                     return varValue;

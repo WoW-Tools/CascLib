@@ -72,13 +72,13 @@ namespace CASCLib
         {
             int size = (int)_reader.BaseStream.Length;
 
-            if (size < 8)
-                throw new BLTEDecoderException(0, "not enough data: size < 8");
+            if (size < 36)
+                throw new BLTEDecoderException(0, "Failed to parse encoding header: not enough data");
 
             int magic = _reader.ReadInt32();
 
             if (magic != BLTE_MAGIC)
-                throw new BLTEDecoderException(0, "frame header mismatch (bad BLTE file)");
+                throw new BLTEDecoderException(0, "Failed to parse encoding header: invalid BLTE header bytes");
 
             int headerSize = _reader.ReadInt32BE();
             _hasHeader = headerSize > 0;
@@ -92,7 +92,7 @@ namespace CASCLib
                 byte[] newHash = _md5.ComputeHash(_reader.ReadBytes(_hasHeader ? headerSize : size));
 
                 if (!eKey.EqualsTo9(newHash))
-                    throw new BLTEDecoderException(0, "data corrupted");
+                    throw new BLTEDecoderException(0, $"Failed to parse encoding header: hash verification failed using e-key {eKey.ToHexString()}");
 
                 _reader.BaseStream.Position = oldPos;
             }
@@ -106,15 +106,18 @@ namespace CASCLib
 
                 byte[] fcbytes = _reader.ReadBytes(4);
 
+                if (fcbytes[0] != 0x0F)
+                    throw new BLTEDecoderException(0, $"Failed to parse encoding header: invalid encoding header format. Expected {0xF:x2}, but got {fcbytes[0]:x2}");
+
                 numBlocks = fcbytes[1] << 16 | fcbytes[2] << 8 | fcbytes[3] << 0;
 
-                if (fcbytes[0] != 0x0F || numBlocks == 0)
-                    throw new BLTEDecoderException(0, $"bad table format 0x{fcbytes[0]:x2}, numBlocks {numBlocks}");
+                if (numBlocks == 0)
+                    throw new BLTEDecoderException(0, $"Failed to parse encoding header: blocks count is 0");
 
                 int frameHeaderSize = 24 * numBlocks + 12;
 
                 if (headerSize != frameHeaderSize)
-                    throw new BLTEDecoderException(0, "header size mismatch");
+                    throw new BLTEDecoderException(0, $"Failed to parse encoding header: invalid header size. Expected {frameHeaderSize}, but got {headerSize}");
 
                 if (size < frameHeaderSize)
                     throw new BLTEDecoderException(0, "not enough data: size < frameHeaderSize");

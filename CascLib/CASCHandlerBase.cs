@@ -67,12 +67,16 @@ namespace CASCLib
 
         public Stream OpenFile(in MD5Hash eKey)
         {
+            MD5Hash tempEKey = eKey;
+            if (FileIndex?.GetFullEKey(eKey, out var fullEKey) == true)
+                tempEKey = fullEKey;
+
             try
             {
                 if (Config.OnlineMode)
-                    return OpenFileOnline(eKey);
+                    return OpenFileOnline(tempEKey);
                 else
-                    return OpenFileLocal(eKey);
+                    return OpenFileLocal(tempEKey);
             }
             catch (BLTEDecoderException exc) when (exc.ErrorCode == 3)
             {
@@ -82,7 +86,7 @@ namespace CASCLib
             }
             catch// (Exception exc) when (!(exc is BLTEDecoderException))
             {
-                return OpenFileOnline(eKey);
+                return OpenFileOnline(tempEKey);
             }
         }
 
@@ -168,16 +172,20 @@ namespace CASCLib
 
         public void SaveFileTo(in MD5Hash eKey, string path, string name)
         {
+            MD5Hash tempEKey = eKey;
+            if (FileIndex?.GetFullEKey(eKey, out var fullEKey) == true)
+                tempEKey = fullEKey;
+
             try
             {
                 if (Config.OnlineMode)
-                    ExtractFileOnline(eKey, path, name);
+                    ExtractFileOnline(tempEKey, path, name);
                 else
-                    ExtractFileLocal(eKey, path, name);
+                    ExtractFileLocal(tempEKey, path, name);
             }
             catch
             {
-                ExtractFileOnline(eKey, path, name);
+                ExtractFileOnline(tempEKey, path, name);
             }
         }
 
@@ -199,11 +207,8 @@ namespace CASCLib
             }
             else
             {
-                MD5Hash tempEKey = eKey;
-                if (FileIndex.GetFullEKey(eKey, out var fullEKey))
-                    tempEKey = fullEKey;
-                using (Stream s = CDNIndex.OpenDataFileDirect(tempEKey))
-                using (BLTEStream blte = new BLTEStream(s, tempEKey))
+                using (Stream s = CDNIndex.OpenDataFileDirect(eKey))
+                using (BLTEStream blte = new BLTEStream(s, eKey))
                 {
                     blte.ExtractToFile(path, name);
                 }

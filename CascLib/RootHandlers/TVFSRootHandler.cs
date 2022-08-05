@@ -45,7 +45,7 @@ namespace CASCLib
     {
         private Dictionary<ulong, RootEntry> tvfsData = new Dictionary<ulong, RootEntry>();
         private Dictionary<ulong, List<VfsRootEntry>> tvfsRootData = new Dictionary<ulong, List<VfsRootEntry>>();
-        private List<(MD5Hash CKey, MD5Hash EKey)> VfsRootList = new List<(MD5Hash, MD5Hash)>();
+        private List<(MD5Hash CKey, MD5Hash EKey)> VfsRootList;
         private List<string> fileTree = new List<string>();
 
         private const uint TVFS_ROOT_MAGIC = 0x53465654;
@@ -342,6 +342,7 @@ namespace CASCLib
                             {
                                 string fileName = pathBuffer.ToString();
                                 fileTree.Add(fileName);
+                                fileName = MakeFileName(fileName);
                                 ulong fileHash = Hasher.ComputeHash(fileName);
 
                                 tvfsRootData.Add(fileHash, new List<VfsRootEntry> { vfsRootEntry });
@@ -355,29 +356,14 @@ namespace CASCLib
                                     tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = default });
                                 }
 
-                                string file;
-
-                                if (fileName.IndexOf(':') != -1)
-                                {
-                                    string[] tokens2 = fileName.Split(':');
-
-                                    if (tokens2.Length == 2 || tokens2.Length == 3 || tokens2.Length == 4)
-                                        file = Path.Combine(tokens2);
-                                    else
-                                        throw new InvalidDataException("tokens2.Length");
-                                }
-                                else
-                                {
-                                    file = fileName;
-                                }
-
-                                CASCFile.Files[fileHash] = new CASCFile(fileHash, file);
+                                CASCFile.Files[fileHash] = new CASCFile(fileHash, fileName);
                             }
                         }
                         else
                         {
                             string fileName = pathBuffer.ToString();
                             fileTree.Add(fileName);
+                            fileName = MakeFileName(fileName);
                             ulong fileHash = Hasher.ComputeHash(fileName);
 
                             List<VfsRootEntry> vfsRootEntries = new List<VfsRootEntry>();
@@ -404,29 +390,33 @@ namespace CASCLib
                             tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = default });
                             tvfsRootData.Add(fileHash, vfsRootEntries);
 
-                            string file;
-
-                            if (fileName.IndexOf(':') != -1)
-                            {
-                                string[] tokens2 = fileName.Split(':');
-
-                                if (tokens2.Length == 2 || tokens2.Length == 3 || tokens2.Length == 4)
-                                    file = Path.Combine(tokens2);
-                                else
-                                    throw new InvalidDataException("tokens2.Length");
-                            }
-                            else
-                            {
-                                file = fileName;
-                            }
-
-                            CASCFile.Files[fileHash] = new CASCFile(fileHash, file);
+                            CASCFile.Files[fileHash] = new CASCFile(fileHash, fileName);
                         }
                     }
 
                     pathBuffer.Remove(savePos, pathBuffer.Length - savePos);
                 }
             }
+        }
+
+        private static string MakeFileName(string data)
+        {
+            string file;
+
+            if (data.IndexOf(':') != -1)
+            {
+                string[] tokens2 = data.Split(':');
+
+                if (tokens2.Length == 2 || tokens2.Length == 3 || tokens2.Length == 4)
+                    file = Path.Combine(tokens2);
+                else
+                    throw new InvalidDataException("tokens2.Length");
+            }
+            else
+            {
+                file = data;
+            }
+            return file;
         }
 
         private void ParseDirectoryData(CASCHandler casc, ref TVFS_DIRECTORY_HEADER dirHeader, StringBuilder pathBuffer)
@@ -474,6 +464,12 @@ namespace CASCLib
         {
             tvfsRootData.TryGetValue(hash, out var vfsRootEntry);
             return vfsRootEntry;
+        }
+
+        public void SetHashDuplicate(ulong oldHash, ulong newHash)
+        {
+            if (tvfsRootData.TryGetValue(oldHash, out var vfsRootEntry))
+                tvfsRootData[newHash] = vfsRootEntry;
         }
 
         public override void LoadListFile(string path, BackgroundWorkerEx worker = null)
