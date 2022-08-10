@@ -185,7 +185,7 @@ namespace CASCLib
             return (1 <= SpanCount && SpanCount <= 224) ? pbVfsFileEntry : default;
         }
 
-        private ReadOnlySpan<byte> CaptureVfsSpanEntry(ref TVFS_DIRECTORY_HEADER dirHeader, ReadOnlySpan<byte> vfsSpanEntry, ref VfsRootEntry vfsRootEntry)
+        private int CaptureVfsSpanEntry(ref TVFS_DIRECTORY_HEADER dirHeader, scoped ReadOnlySpan<byte> vfsSpanEntry, scoped ref VfsRootEntry vfsRootEntry)
         {
             ReadOnlySpan<byte> cftFileTable = dirHeader.CftTable;
             int itemSize = sizeof(int) + sizeof(int) + dirHeader.CftOffsSize;
@@ -205,9 +205,7 @@ namespace CASCLib
 
             vfsRootEntry.eKey = Unsafe.As<byte, MD5Hash>(ref eKey[0]);
 
-            vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
-
-            return vfsSpanEntry;
+            return itemSize;
         }
 
         private ReadOnlySpan<byte> CapturePathEntry(ReadOnlySpan<byte> pathTable, out PathTableEntry pathEntry)
@@ -325,7 +323,8 @@ namespace CASCLib
                         {
                             VfsRootEntry vfsRootEntry = new VfsRootEntry();
 
-                            vfsSpanEntry = CaptureVfsSpanEntry(ref dirHeader, vfsSpanEntry, ref vfsRootEntry);
+                            int itemSize = CaptureVfsSpanEntry(ref dirHeader, vfsSpanEntry, ref vfsRootEntry);
+                            vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
 
                             if (vfsSpanEntry == default)
                                 throw new InvalidDataException();
@@ -372,7 +371,8 @@ namespace CASCLib
                             {
                                 VfsRootEntry vfsRootEntry = new VfsRootEntry();
 
-                                vfsSpanEntry = CaptureVfsSpanEntry(ref dirHeader, vfsSpanEntry, ref vfsRootEntry);
+                                int itemSize = CaptureVfsSpanEntry(ref dirHeader, vfsSpanEntry, ref vfsRootEntry);
+                                vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
 
                                 if (vfsSpanEntry == default)
                                     throw new InvalidDataException();
