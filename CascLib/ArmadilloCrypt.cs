@@ -25,7 +25,7 @@ namespace CASCLib
         {
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            FileInfo fi = new FileInfo(Path.Combine(appDataPath, "Battle.net\\Armadillo", keyName + ".ak"));
+            FileInfo fi = new FileInfo(Path.Combine(appDataPath, "Battle.net", "Armadillo", keyName + ".ak"));
 
             key = null;
 

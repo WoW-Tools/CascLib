@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 
 namespace CASCLib
@@ -26,7 +27,7 @@ namespace CASCLib
             {
                 string message = $"Utils: HttpWebResponse for {url} failed after 5 tries";
                 Logger.WriteLine(message);
-                throw new WebException(message);
+                throw new Exception(message);
             }
 
             HttpWebRequest req = WebRequest.CreateHttp(url);
@@ -58,7 +59,7 @@ namespace CASCLib
                     {
                         string message = $"Utils: error at HttpWebResponse {url}: Status {exc.Status}, StatusCode {resp.StatusCode}";
                         Logger.WriteLine(message);
-                        throw new WebException(message);
+                        throw new Exception(message);
                     }
                 }
             }

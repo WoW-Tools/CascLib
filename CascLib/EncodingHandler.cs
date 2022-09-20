@@ -105,7 +105,7 @@ namespace CASCLib
 
             long chunkStart2 = stream.BaseStream.Position;
 
-            Regex regex = new Regex(@"(?<=e:\{)([0-9A-F]{16})(?=,)", RegexOptions.Compiled);
+            Regex regex = new Regex(@"(?<=e:\{)([0-9a-fA-F]{16})(?=,)", RegexOptions.Compiled);
 
             for (int i = 0; i < EKeyPageCount; i++)
             {

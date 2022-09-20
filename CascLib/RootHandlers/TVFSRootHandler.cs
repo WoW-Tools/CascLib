@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -46,7 +47,7 @@ namespace CASCLib
         private Dictionary<ulong, RootEntry> tvfsData = new Dictionary<ulong, RootEntry>();
         private Dictionary<ulong, List<VfsRootEntry>> tvfsRootData = new Dictionary<ulong, List<VfsRootEntry>>();
         private List<(MD5Hash CKey, MD5Hash EKey)> VfsRootList;
-        private List<string> fileTree = new List<string>();
+        private Dictionary<ulong, string> fileTree = new Dictionary<ulong, string>();
 
         private const uint TVFS_ROOT_MAGIC = 0x53465654;
 
@@ -82,12 +83,12 @@ namespace CASCLib
                 ParseDirectoryData(casc, ref dirHeader, PathBuffer);
             }
 
-            foreach (var enc in casc.Encoding.Entries)
-            {
-                Logger.WriteLine($"ENC: {enc.Key.ToHexString()} {enc.Value.Size}");
-                foreach (var key in enc.Value.Keys)
-                    Logger.WriteLine($"    {key.ToHexString()}");
-            }
+            //foreach (var enc in casc.Encoding.Entries)
+            //{
+            //    Logger.WriteLine($"ENC: {enc.Key.ToHexString()} {enc.Value.Size}");
+            //    foreach (var key in enc.Value.Keys)
+            //        Logger.WriteLine($"    {key.ToHexString()}");
+            //}
 
             worker?.ReportProgress(100);
         }
@@ -171,7 +172,7 @@ namespace CASCLib
             return true;
         }
 
-        private ReadOnlySpan<byte> CaptureVfsSpanCount(ref TVFS_DIRECTORY_HEADER dirHeader, int dwVfsOffset, ref byte SpanCount)
+        private ReadOnlySpan<byte> CaptureVfsSpanCount(ref TVFS_DIRECTORY_HEADER dirHeader, int dwVfsOffset, scoped ref byte SpanCount)
         {
             ReadOnlySpan<byte> VfsFileTable = dirHeader.VfsTable;
             ReadOnlySpan<byte> pbVfsFileEntry = VfsFileTable.Slice(dwVfsOffset);
@@ -185,7 +186,7 @@ namespace CASCLib
             return (1 <= SpanCount && SpanCount <= 224) ? pbVfsFileEntry : default;
         }
 
-        private int CaptureVfsSpanEntry(ref TVFS_DIRECTORY_HEADER dirHeader, scoped ReadOnlySpan<byte> vfsSpanEntry, scoped ref VfsRootEntry vfsRootEntry)
+        private int CaptureVfsSpanEntry(ref TVFS_DIRECTORY_HEADER dirHeader, ReadOnlySpan<byte> vfsSpanEntry, scoped ref VfsRootEntry vfsRootEntry)
         {
             ReadOnlySpan<byte> cftFileTable = dirHeader.CftTable;
             int itemSize = sizeof(int) + sizeof(int) + dirHeader.CftOffsSize;
@@ -268,7 +269,7 @@ namespace CASCLib
             return false;
         }
 
-        private bool IsVfsSubDirectory(CASCHandler casc, ref TVFS_DIRECTORY_HEADER dirHeader, out TVFS_DIRECTORY_HEADER subHeader, in MD5Hash eKey)
+        private bool IsVfsSubDirectory(CASCHandler casc, ref TVFS_DIRECTORY_HEADER dirHeader, out TVFS_DIRECTORY_HEADER subHeader, scoped in MD5Hash eKey)
         {
             if (IsVfsFileEKey(eKey, out var fullEKey))
             {
@@ -329,7 +330,7 @@ namespace CASCLib
                             if (vfsSpanEntry == default)
                                 throw new InvalidDataException();
 
-                            Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D8} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} 0");
+                            Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} 0");
 
                             if (IsVfsSubDirectory(casc, ref dirHeader, out subHeader, vfsRootEntry.eKey))
                             {
@@ -340,9 +341,9 @@ namespace CASCLib
                             else
                             {
                                 string fileName = pathBuffer.ToString();
-                                fileTree.Add(fileName);
-                                fileName = MakeFileName(fileName);
-                                ulong fileHash = Hasher.ComputeHash(fileName);
+                                string fileNameNew = MakeFileName(fileName);
+                                ulong fileHash = Hasher.ComputeHash(fileNameNew);
+                                fileTree.Add(fileHash, fileName);
 
                                 tvfsRootData.Add(fileHash, new List<VfsRootEntry> { vfsRootEntry });
 
@@ -355,15 +356,15 @@ namespace CASCLib
                                     tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = default });
                                 }
 
-                                CASCFile.Files[fileHash] = new CASCFile(fileHash, fileName);
+                                CASCFile.Files[fileHash] = new CASCFile(fileHash, fileNameNew);
                             }
                         }
                         else
                         {
                             string fileName = pathBuffer.ToString();
-                            fileTree.Add(fileName);
-                            fileName = MakeFileName(fileName);
-                            ulong fileHash = Hasher.ComputeHash(fileName);
+                            string fileNameNew = MakeFileName(fileName);
+                            ulong fileHash = Hasher.ComputeHash(fileNameNew);
+                            fileTree.Add(fileHash, fileName);
 
                             List<VfsRootEntry> vfsRootEntries = new List<VfsRootEntry>();
 
@@ -377,7 +378,7 @@ namespace CASCLib
                                 if (vfsSpanEntry == default)
                                     throw new InvalidDataException();
 
-                                Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D8} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} {dwSpanIndex}");
+                                Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} {dwSpanIndex}");
 
                                 vfsRootEntries.Add(vfsRootEntry);
 
@@ -390,7 +391,7 @@ namespace CASCLib
                             tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = default });
                             tvfsRootData.Add(fileHash, vfsRootEntries);
 
-                            CASCFile.Files[fileHash] = new CASCFile(fileHash, fileName);
+                            CASCFile.Files[fileHash] = new CASCFile(fileHash, fileNameNew);
                         }
                     }
 
@@ -469,7 +470,14 @@ namespace CASCLib
         public void SetHashDuplicate(ulong oldHash, ulong newHash)
         {
             if (tvfsRootData.TryGetValue(oldHash, out var vfsRootEntry))
+            {
                 tvfsRootData[newHash] = vfsRootEntry;
+                fileTree[newHash] = fileTree[oldHash];
+            }
+            if (tvfsData.TryGetValue(oldHash, out var rootEntry))
+            {
+                tvfsData[newHash] = rootEntry;
+            }
         }
 
         public override void LoadListFile(string path, BackgroundWorkerEx worker = null)
