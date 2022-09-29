@@ -48,7 +48,7 @@ namespace CASCLib
 
             using (var _ = new PerfCounter("new RootHandler()"))
             {
-                if (config.IsVfsRoot)
+                if (config.IsVfsRoot && config.GameType != CASCGameType.WoW)
                     RootHandler = new TVFSRootHandler(worker, this);
                 else
                 {
