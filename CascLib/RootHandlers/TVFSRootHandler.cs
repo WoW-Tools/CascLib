@@ -172,7 +172,7 @@ namespace CASCLib
             return true;
         }
 
-        private ReadOnlySpan<byte> CaptureVfsSpanCount(ref TVFS_DIRECTORY_HEADER dirHeader, int dwVfsOffset, scoped ref byte SpanCount)
+        private ReadOnlySpan<byte> CaptureVfsSpanCount(ref TVFS_DIRECTORY_HEADER dirHeader, int dwVfsOffset, ref byte SpanCount)
         {
             ReadOnlySpan<byte> VfsFileTable = dirHeader.VfsTable;
             ReadOnlySpan<byte> pbVfsFileEntry = VfsFileTable.Slice(dwVfsOffset);
@@ -186,7 +186,7 @@ namespace CASCLib
             return (1 <= SpanCount && SpanCount <= 224) ? pbVfsFileEntry : default;
         }
 
-        private int CaptureVfsSpanEntry(ref TVFS_DIRECTORY_HEADER dirHeader, ReadOnlySpan<byte> vfsSpanEntry, scoped ref VfsRootEntry vfsRootEntry)
+        private int CaptureVfsSpanEntry(ref TVFS_DIRECTORY_HEADER dirHeader, scoped ReadOnlySpan<byte> vfsSpanEntry, ref VfsRootEntry vfsRootEntry)
         {
             ReadOnlySpan<byte> cftFileTable = dirHeader.CftTable;
             int itemSize = sizeof(int) + sizeof(int) + dirHeader.CftOffsSize;
@@ -269,7 +269,7 @@ namespace CASCLib
             return false;
         }
 
-        private bool IsVfsSubDirectory(CASCHandler casc, ref TVFS_DIRECTORY_HEADER dirHeader, out TVFS_DIRECTORY_HEADER subHeader, scoped in MD5Hash eKey)
+        private bool IsVfsSubDirectory(CASCHandler casc, out TVFS_DIRECTORY_HEADER subHeader, scoped in MD5Hash eKey)
         {
             if (IsVfsFileEKey(eKey, out var fullEKey))
             {
@@ -332,7 +332,7 @@ namespace CASCLib
 
                             Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} 0");
 
-                            if (IsVfsSubDirectory(casc, ref dirHeader, out subHeader, vfsRootEntry.eKey))
+                            if (IsVfsSubDirectory(casc, out subHeader, vfsRootEntry.eKey))
                             {
                                 pathBuffer.Append(':');
 
