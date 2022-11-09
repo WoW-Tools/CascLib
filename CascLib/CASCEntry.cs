@@ -14,11 +14,13 @@ namespace CASCLib
 
     public class CASCFolder : ICASCEntry
     {
-        public Dictionary<string, ICASCEntry> Entries { get; set; }
+        public Dictionary<string, CASCFile> Files { get; set; }
+        public Dictionary<string, CASCFolder> Folders { get; set; }
 
         public CASCFolder(string name)
         {
-            Entries = new Dictionary<string, ICASCEntry>(StringComparer.OrdinalIgnoreCase);
+            Files = new Dictionary<string, CASCFile>(StringComparer.OrdinalIgnoreCase);
+            Folders = new Dictionary<string, CASCFolder>(StringComparer.OrdinalIgnoreCase);
             Name = name;
         }
 
@@ -26,9 +28,15 @@ namespace CASCLib
 
         public ulong Hash => 0;
 
-        public ICASCEntry GetEntry(string name)
+        public CASCFile GetFile(string name)
         {
-            Entries.TryGetValue(name, out ICASCEntry entry);
+            Files.TryGetValue(name, out CASCFile entry);
+            return entry;
+        }
+
+        public CASCFolder GetFolder(string name)
+        {
+            Folders.TryGetValue(name, out CASCFolder entry);
             return entry;
         }
 
@@ -48,7 +56,11 @@ namespace CASCLib
                     {
                         var folder = entry as CASCFolder;
 
-                        foreach (var file in GetFiles(folder.Entries.Select(kv => kv.Value)))
+                        foreach (var file in GetFiles(folder.Files.Select(kv => kv.Value)))
+                        {
+                            yield return file;
+                        }
+                        foreach (var file in GetFiles(folder.Folders.Select(kv => kv.Value)))
                         {
                             yield return file;
                         }

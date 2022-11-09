@@ -163,11 +163,11 @@ namespace CASCLib
             switch (e.Type)
             {
                 case 0:
-                    SNOInfo sno1 = tocParser.GetSNO(e.SNO);
+                    SNOInfoD3 sno1 = tocParser.GetSNO(e.SNO);
                     name = string.Format("{0}\\{1}{2}", sno1.GroupId, sno1.Name, sno1.Ext);
                     break;
                 case 1:
-                    SNOInfo sno2 = tocParser.GetSNO(e.SNO);
+                    SNOInfoD3 sno2 = tocParser.GetSNO(e.SNO);
                     name = string.Format("{0}\\{1}\\{2:D4}", sno2.GroupId, sno2.Name, e.FileIndex);
 
                     string ext = pkgParser.GetExtension(name);
@@ -251,7 +251,7 @@ namespace CASCLib
         }
     }
 
-    public class SNOInfo
+    public class SNOInfoD3
     {
         public SNOGroup GroupId;
         public string Name;
@@ -345,7 +345,7 @@ namespace CASCLib
             public int unk;
         }
 
-        readonly Dictionary<int, SNOInfo> snoDic = new Dictionary<int, SNOInfo>();
+        readonly Dictionary<int, SNOInfoD3> snoDic = new Dictionary<int, SNOInfoD3>();
 
         readonly Dictionary<SNOGroup, string> extensions = new Dictionary<SNOGroup, string>()
         {
@@ -442,16 +442,16 @@ namespace CASCLib
                             string name = br.ReadCString();
                             br.BaseStream.Position = oldPos;
 
-                            snoDic.Add(snoId, new SNOInfo() { GroupId = snoGroup, Name = name, Ext = extensions[snoGroup] });
+                            snoDic.Add(snoId, new SNOInfoD3() { GroupId = snoGroup, Name = name, Ext = extensions[snoGroup] });
                         }
                     }
                 }
             }
         }
 
-        public SNOInfo GetSNO(int id)
+        public SNOInfoD3 GetSNO(int id)
         {
-            snoDic.TryGetValue(id, out SNOInfo sno);
+            snoDic.TryGetValue(id, out SNOInfoD3 sno);
             return sno;
         }
     }

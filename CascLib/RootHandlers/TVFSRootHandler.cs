@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace CASCLib
@@ -31,7 +32,34 @@ namespace CASCLib
         public ReadOnlySpan<byte> PathTable;
         public ReadOnlySpan<byte> VfsTable;
         public ReadOnlySpan<byte> CftTable;
-        public ReadOnlySpan<byte> EstTable;
+        //public ReadOnlySpan<byte> EstTable;
+    }
+
+    ref struct PathBuffer
+    {
+        public Span<byte> Data;
+        public int Position;
+
+        public PathBuffer()
+        {
+            Data = new byte[512];
+        }
+
+        public void Append(byte value)
+        {
+            Data[Position++] = value;
+        }
+
+        public void Append(ReadOnlySpan<byte> values)
+        {
+            values.CopyTo(Data.Slice(Position));
+            Position += values.Length;
+        }
+
+        public unsafe string GetString()
+        {
+            return new string((sbyte*)Unsafe.AsPointer(ref Data[0]), 0, Position, Encoding.ASCII);
+        }
     }
 
     public struct VfsRootEntry
@@ -47,7 +75,8 @@ namespace CASCLib
         private Dictionary<ulong, RootEntry> tvfsData = new Dictionary<ulong, RootEntry>();
         private Dictionary<ulong, List<VfsRootEntry>> tvfsRootData = new Dictionary<ulong, List<VfsRootEntry>>();
         private List<(MD5Hash CKey, MD5Hash EKey)> VfsRootList;
-        private Dictionary<ulong, string> fileTree = new Dictionary<ulong, string>();
+        private HashSet<MD5Hash> VfsRootSet = new HashSet<MD5Hash>(MD5HashComparer9.Instance);
+        protected readonly Dictionary<ulong, (string Orig, string New)> fileTree = new Dictionary<ulong, (string, string)>();
 
         private const uint TVFS_ROOT_MAGIC = 0x53465654;
 
@@ -71,6 +100,10 @@ namespace CASCLib
 
             var config = casc.Config;
             VfsRootList = config.VfsRootList;
+
+            foreach (var vfsRoot in VfsRootList)
+                VfsRootSet.Add(vfsRoot.EKey);
+
             var rootEKey = config.VfsRootEKey;
 
             using (var rootFile = casc.OpenFile(rootEKey))
@@ -78,9 +111,9 @@ namespace CASCLib
             {
                 CaptureDirectoryHeader(out var dirHeader, reader);
 
-                StringBuilder PathBuffer = new StringBuilder();
+                PathBuffer PathBuffer = new PathBuffer();
 
-                ParseDirectoryData(casc, ref dirHeader, PathBuffer);
+                ParseDirectoryData(casc, ref dirHeader, ref PathBuffer);
             }
 
             //foreach (var enc in casc.Encoding.Entries)
@@ -93,16 +126,15 @@ namespace CASCLib
             worker?.ReportProgress(100);
         }
 
-        private static bool PathBuffer_AppendNode(StringBuilder pathBuffer, ref PathTableEntry pathEntry)
+        private static bool PathBuffer_AppendNode(ref PathBuffer pathBuffer, in PathTableEntry pathEntry)
         {
             if ((pathEntry.NodeFlags & TVFS_PTE_PATH_SEPARATOR_PRE) != 0)
-                pathBuffer.Append('/');
+                pathBuffer.Append((byte)'/');
 
-            for (int i = 0; i < pathEntry.Name.Length; i++)
-                pathBuffer.Append((char)pathEntry.Name[i]);
+            pathBuffer.Append(pathEntry.Name);
 
             if ((pathEntry.NodeFlags & TVFS_PTE_PATH_SEPARATOR_POST) != 0)
-                pathBuffer.Append('/');
+                pathBuffer.Append((byte)'/');
 
             return true;
         }
@@ -257,16 +289,23 @@ namespace CASCLib
 
         private bool IsVfsFileEKey(in MD5Hash eKey, out MD5Hash fullEKey)
         {
-            for (int i = 0; i < VfsRootList.Count; i++)
+#if NET6_0_OR_GREATER
+            return VfsRootSet.TryGetValue(eKey, out fullEKey);
+#else
+            if (VfsRootSet.Contains(eKey))
             {
-                if (VfsRootList[i].EKey.EqualsTo9(eKey))
+                foreach (MD5Hash hash in VfsRootSet)
                 {
-                    fullEKey = VfsRootList[i].EKey;
-                    return true;
+                    if (hash.EqualsTo9(eKey))
+                    {
+                        fullEKey = hash;
+                        return true;
+                    }
                 }
             }
             fullEKey = default;
             return false;
+#endif
         }
 
         private bool IsVfsSubDirectory(CASCHandler casc, out TVFS_DIRECTORY_HEADER subHeader, scoped in MD5Hash eKey)
@@ -285,11 +324,9 @@ namespace CASCLib
             return false;
         }
 
-        private void ParsePathFileTable(CASCHandler casc, ref TVFS_DIRECTORY_HEADER dirHeader, StringBuilder pathBuffer, ReadOnlySpan<byte> pathTable)
+        private void ParsePathFileTable(CASCHandler casc, ref TVFS_DIRECTORY_HEADER dirHeader, ref PathBuffer pathBuffer, ReadOnlySpan<byte> pathTable)
         {
-            TVFS_DIRECTORY_HEADER subHeader;
-
-            int savePos = pathBuffer.Length;
+            int savePos = pathBuffer.Position;
 
             while (pathTable.Length > 0)
             {
@@ -298,7 +335,7 @@ namespace CASCLib
                 if (pathTable == default)
                     throw new InvalidDataException();
 
-                PathBuffer_AppendNode(pathBuffer, ref pathEntry);
+                PathBuffer_AppendNode(ref pathBuffer, pathEntry);
 
                 if ((pathEntry.NodeFlags & TVFS_PTE_NODE_VALUE) != 0)
                 {
@@ -308,7 +345,7 @@ namespace CASCLib
 
                         Debug.Assert((pathEntry.NodeValue & TVFS_FOLDER_SIZE_MASK) >= sizeof(int));
 
-                        ParsePathFileTable(casc, ref dirHeader, pathBuffer, pathTable.Slice(0, dirLen));
+                        ParsePathFileTable(casc, ref dirHeader, ref pathBuffer, pathTable.Slice(0, dirLen));
 
                         pathTable = pathTable.Slice(dirLen);
                     }
@@ -330,41 +367,41 @@ namespace CASCLib
                             if (vfsSpanEntry == default)
                                 throw new InvalidDataException();
 
-                            Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} 0");
+                            //Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} 0");
 
-                            if (IsVfsSubDirectory(casc, out subHeader, vfsRootEntry.eKey))
+                            if (IsVfsSubDirectory(casc, out var subHeader, vfsRootEntry.eKey))
                             {
-                                pathBuffer.Append(':');
+                                pathBuffer.Append((byte)'/');
 
-                                ParseDirectoryData(casc, ref subHeader, pathBuffer);
+                                ParseDirectoryData(casc, ref subHeader, ref pathBuffer);
                             }
                             else
                             {
-                                string fileName = pathBuffer.ToString();
+                                //string fileName = pathBuffer.ToString();
+                                string fileName = pathBuffer.GetString();
                                 string fileNameNew = MakeFileName(fileName);
                                 ulong fileHash = Hasher.ComputeHash(fileNameNew);
-                                fileTree.Add(fileHash, fileName);
+                                fileTree.Add(fileHash, (fileName, fileNameNew));
 
                                 tvfsRootData.Add(fileHash, new List<VfsRootEntry> { vfsRootEntry });
 
-                                if (casc.Encoding.GetCKeyFromEKey(vfsRootEntry.eKey, out MD5Hash cKey))
-                                {
-                                    tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = cKey });
-                                }
-                                else
-                                {
-                                    tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = default });
-                                }
-
-                                CASCFile.Files[fileHash] = new CASCFile(fileHash, fileNameNew);
+                                //if (casc.Encoding.GetCKeyFromEKey(vfsRootEntry.eKey, out MD5Hash cKey))
+                                //{
+                                //    tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = cKey });
+                                //}
+                                //else
+                                //{
+                                //    tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = default });
+                                //}
                             }
                         }
                         else
                         {
-                            string fileName = pathBuffer.ToString();
+                            //string fileName = pathBuffer.ToString();
+                            string fileName = pathBuffer.GetString();
                             string fileNameNew = MakeFileName(fileName);
                             ulong fileHash = Hasher.ComputeHash(fileNameNew);
-                            fileTree.Add(fileHash, fileName);
+                            fileTree.Add(fileHash, (fileName, fileNameNew));
 
                             List<VfsRootEntry> vfsRootEntries = new List<VfsRootEntry>();
 
@@ -378,49 +415,59 @@ namespace CASCLib
                                 if (vfsSpanEntry == default)
                                     throw new InvalidDataException();
 
-                                Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} {dwSpanIndex}");
+                                //Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} {dwSpanIndex}");
 
                                 vfsRootEntries.Add(vfsRootEntry);
 
-                                if (casc.Encoding.GetCKeyFromEKey(vfsRootEntry.eKey, out MD5Hash cKey))
-                                {
-                                    throw new Exception("got CKey for EKey!");
-                                }
+                                //if (casc.Encoding.GetCKeyFromEKey(vfsRootEntry.eKey, out MD5Hash cKey))
+                                //{
+                                //    throw new Exception("got CKey for EKey!");
+                                //}
                             }
 
-                            tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = default });
+                            //tvfsData.Add(fileHash, new RootEntry { LocaleFlags = LocaleFlags.All, ContentFlags = ContentFlags.None, cKey = default });
                             tvfsRootData.Add(fileHash, vfsRootEntries);
-
-                            CASCFile.Files[fileHash] = new CASCFile(fileHash, fileNameNew);
                         }
                     }
 
-                    pathBuffer.Remove(savePos, pathBuffer.Length - savePos);
+                    //pathBuffer.Remove(savePos, pathBuffer.Length - savePos);
+                    pathBuffer.Position = savePos;
                 }
             }
         }
 
         private static string MakeFileName(string data)
         {
-            string file;
+            return data;
+            //string file = data;
 
-            if (data.IndexOf(':') != -1)
-            {
-                string[] tokens2 = data.Split(':');
+            //if (data.IndexOf(':') != -1)
+            //{
+            //    StringBuilder sb = new StringBuilder(data);
 
-                if (tokens2.Length == 2 || tokens2.Length == 3 || tokens2.Length == 4)
-                    file = Path.Combine(tokens2);
-                else
-                    throw new InvalidDataException("tokens2.Length");
-            }
-            else
-            {
-                file = data;
-            }
-            return file;
+            //    for (int i = 0; i < sb.Length; i++)
+            //    {
+            //        if (sb[i] == ':')
+            //            sb[i] = '\\';
+            //    }
+
+            //    file = sb.ToString();
+
+            //    //string[] tokens2 = data.Split(':');
+
+            //    //if (tokens2.Length == 2 || tokens2.Length == 3 || tokens2.Length == 4)
+            //    //    file = Path.Combine(tokens2);
+            //    //else
+            //    //    throw new InvalidDataException("tokens2.Length");
+            //}
+            //else
+            //{
+            //    file = data;
+            //}
+            //return file;
         }
 
-        private void ParseDirectoryData(CASCHandler casc, ref TVFS_DIRECTORY_HEADER dirHeader, StringBuilder pathBuffer)
+        private void ParseDirectoryData(CASCHandler casc, ref TVFS_DIRECTORY_HEADER dirHeader, ref PathBuffer pathBuffer)
         {
             ReadOnlySpan<byte> pathTable = dirHeader.PathTable;
 
@@ -442,7 +489,7 @@ namespace CASCLib
                 }
             }
 
-            ParsePathFileTable(casc, ref dirHeader, pathBuffer, pathTable);
+            ParsePathFileTable(casc, ref dirHeader, ref pathBuffer, pathTable);
         }
 
         public override IEnumerable<KeyValuePair<ulong, RootEntry>> GetAllEntries()
@@ -472,7 +519,7 @@ namespace CASCLib
             if (tvfsRootData.TryGetValue(oldHash, out var vfsRootEntry))
             {
                 tvfsRootData[newHash] = vfsRootEntry;
-                fileTree[newHash] = fileTree[oldHash];
+                //fileTree[newHash] = fileTree[oldHash];
             }
             if (tvfsData.TryGetValue(oldHash, out var rootEntry))
             {
@@ -491,12 +538,9 @@ namespace CASCLib
 
             CountSelect = 0;
 
-            foreach (var entry in tvfsData)
+            foreach (var entry in tvfsRootData)
             {
-                if ((entry.Value.LocaleFlags & Locale) == 0)
-                    continue;
-
-                CreateSubTree(root, entry.Key, CASCFile.Files[entry.Key].FullName);
+                CreateSubTree(root, entry.Key, fileTree[entry.Key].New);
                 CountSelect++;
             }
 
@@ -507,13 +551,77 @@ namespace CASCLib
         {
             tvfsData.Clear();
             tvfsRootData.Clear();
-            Root.Entries.Clear();
+            Root.Files.Clear();
+            Root.Folders.Clear();
             CASCFile.Files.Clear();
         }
 
         public override void Dump(EncodingHandler encodingHandler = null)
         {
+            Logger.WriteLine("TVFSRootHandler Dump:");
 
+            Dictionary<ulong, int> keyCounts = new Dictionary<ulong, int>();
+            keyCounts[0] = 0;
+
+            foreach (var fd in tvfsRootData)
+            {
+                if (!fileTree.TryGetValue(fd.Key, out var name))
+                {
+                    Logger.WriteLine($"Can't get name for Hash: {fd.Key:X16}");
+                    continue;
+                }
+
+                Logger.WriteLine($"Hash: {fd.Key:X16} Name: {name.Orig}");
+
+                foreach (var entry in fd.Value)
+                {
+                    Logger.WriteLine($"\teKey: {entry.eKey.ToHexString()} ContentLength {entry.ContentLength} ContentOffset {entry.ContentOffset} CftOffset {entry.CftOffset}");
+
+                    if (encodingHandler != null)
+                    {
+                        if (encodingHandler.GetCKeyFromEKey(entry.eKey, out MD5Hash cKey))
+                        {
+                            if (encodingHandler.GetEntry(cKey, out var encodingEntry))
+                            {
+                                foreach (var eKey in encodingEntry.Keys)
+                                {
+                                    var keys = encodingHandler.GetEncryptionKeys(eKey);
+                                    if (keys != null)
+                                    {
+                                        Logger.WriteLine($"\teKey: {eKey.ToHexString()} cKey: {cKey.ToHexString()} TactKeys: {string.Join(",", keys.Select(k => $"{k:X16}"))} Size: {encodingEntry.Size}");
+
+                                        foreach (var key in keys)
+                                        {
+                                            if (!keyCounts.ContainsKey(key))
+                                                keyCounts[key] = 0;
+
+                                            keyCounts[key]++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Logger.WriteLine($"\teKey: {eKey.ToHexString()} cKey: {cKey.ToHexString()} TactKeys: NA Size: {encodingEntry.Size}");
+                                        keyCounts[0]++;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Logger.WriteLine($"\tEncodingEntry: NA");
+                            }
+                        }
+                        else
+                        {
+                            Logger.WriteLine($"\tcKey: NA");
+                        }
+                    }
+                }
+            }
+
+            foreach (var kv in keyCounts)
+            {
+                Logger.WriteLine($"Key: {kv.Key:X16} Count: {kv.Value}");
+            }
         }
     }
 

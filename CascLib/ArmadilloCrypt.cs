@@ -105,5 +105,51 @@ namespace CASCLib
                 return cs.CopyToMemoryStream();
             }
         }
+
+        public Stream DecryptFileToStream(string name, Stream stream, int offset, int length)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(name);
+
+            if (fileName.Length != 32)
+                throw new ArgumentException("Invalid file name", nameof(name));
+
+            byte[] IV = fileName.Substring(16).FromHexString();
+
+            if (offset != 0)
+            {
+                using (MemoryStream fake = new MemoryStream(offset + length))
+                {
+                    fake.Position = offset;
+                    stream.CopyTo(fake);
+                    fake.Position = 0;
+
+                    using (ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(_key, IV))
+                    using (CryptoStream cs = new CryptoStream(fake, decryptor, CryptoStreamMode.Read))
+                    {
+                        MemoryStream ms = new MemoryStream(length);
+                        cs.CopyBytesFromPos(ms, offset, length);
+                        ms.Position = 0;
+                        return ms;
+                    }
+                }
+            }
+            else
+            {
+                using (ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(_key, IV))
+                using (CryptoStream cs = new CryptoStream(stream, decryptor, CryptoStreamMode.Read))
+                {
+                    return cs.CopyToMemoryStream();
+                }
+            }
+        }
+
+        public static void Init(string keyName)
+        {
+            crypt = new ArmadilloCrypt(keyName);
+        }
+
+        private static ArmadilloCrypt crypt;
+
+        public static ArmadilloCrypt Instance => crypt;
     }
 }

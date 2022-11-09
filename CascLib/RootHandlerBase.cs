@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CASCLib
@@ -43,11 +44,11 @@ namespace CASCLib
 
                 string entryName = parts[i];
 
-                ICASCEntry entry = folder.GetEntry(entryName);
-
-                if (entry == null)
+                if (isFile)
                 {
-                    if (isFile)
+                    CASCFile entry = folder.GetFile(entryName);
+
+                    if (entry == null)
                     {
                         if (!CASCFile.Files.ContainsKey(filehash))
                         {
@@ -56,16 +57,23 @@ namespace CASCLib
                         }
                         else
                             entry = CASCFile.Files[filehash];
+
+                        folder.Files[entryName] = entry;
                     }
-                    else
+                }
+                else
+                {
+                    CASCFolder entry = folder.GetFolder(entryName);
+
+                    if (entry == null)
                     {
                         entry = new CASCFolder(entryName);
+
+                        folder.Folders[entryName] = entry;
                     }
 
-                    folder.Entries[entryName] = entry;
+                    folder = entry;
                 }
-
-                folder = entry as CASCFolder;
             }
         }
 

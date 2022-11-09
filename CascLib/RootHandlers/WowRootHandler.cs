@@ -39,12 +39,15 @@ namespace CASCLib
         None = 0,
         F00000001 = 0x1, // seen on *.wlm files
         F00000002 = 0x2,
-        F00000004 = 0x4,
+        F00000004 = 0x4, // install?
         Windows = 0x8, // added in 7.2.0.23436
         MacOS = 0x10, // added in 7.2.0.23436
+        F00000020 = 0x20, // x86?
+        F00000040 = 0x40, // x64?
         Alternate = 0x80, // many chinese models have this flag
         F00000100 = 0x100, // apparently client doesn't load files with this flag
         F00000800 = 0x800, // only seen on UpdatePlugin files
+        F00008000 = 0x8000, // Windows ARM64?
         F00020000 = 0x20000, // new 9.0
         F00040000 = 0x40000, // new 9.0
         F00080000 = 0x80000, // new 9.0
@@ -422,7 +425,8 @@ namespace CASCLib
             FileDataStoreReverse = null;
             UnknownFiles.Clear();
             UnknownFiles = null;
-            Root?.Entries.Clear();
+            Root?.Files.Clear();
+            Root?.Folders.Clear();
             Root = null;
             CASCFile.Files.Clear();
         }

@@ -48,8 +48,15 @@ namespace CASCLib
 
             using (var _ = new PerfCounter("new RootHandler()"))
             {
-                if (config.IsVfsRoot && config.GameType != CASCGameType.WoW)
-                    RootHandler = new TVFSRootHandler(worker, this);
+                if (config.IsVfsRoot)
+                {
+                    if (config.GameType == CASCGameType.D4)
+                        RootHandler = new D4RootHandler(worker, this);
+                    else if (config.GameType == CASCGameType.WoW)
+                        RootHandler = new WowTVFSRootHandler(worker, this);
+                    else
+                        RootHandler = new TVFSRootHandler(worker, this);
+                }
                 else
                 {
                     using (var fs = OpenRootFile(EncodingHandler, this))
@@ -199,6 +206,9 @@ namespace CASCLib
         {
             if (Root is WowRootHandler rh)
                 return OpenFile(rh.GetHashByFileDataId(fileDataId));
+
+            if (Root is WowTVFSRootHandler rh2)
+                return OpenFile(rh2.GetHashByFileDataId(fileDataId));
 
             throw new NotSupportedException("Opening files by FileDataId only supported for WoW");
         }

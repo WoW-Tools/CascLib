@@ -109,7 +109,8 @@ namespace CASCLib
 
         public override void Clear()
         {
-            Root.Entries.Clear();
+            Root.Files.Clear();
+            Root.Folders.Clear();
             CASCFile.Files.Clear();
         }
 

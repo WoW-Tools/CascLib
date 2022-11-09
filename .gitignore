@@ -1,4 +1,8 @@
 .vs/*
 CascLib/bin/*
 CascLib/obj/*
+CascLib.Tests/bin/*
+CascLib.Tests/obj/*
+CascLib.Benchmark/bin/*
+CascLib.Benchmark/obj/*
 *.user

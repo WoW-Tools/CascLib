@@ -25,7 +25,8 @@ namespace CASCLib
         Fore,
         Zeus,
         Rtro,
-        Anbs
+        Anbs,
+        D4
     }
 
     public class CASCGame
@@ -77,6 +78,7 @@ namespace CASCLib
                 _ when uid.StartsWith("zeus") => CASCGameType.Zeus,
                 _ when uid.StartsWith("rtro") => CASCGameType.Rtro,
                 _ when uid.StartsWith("anbs") => CASCGameType.Anbs,
+                _ when uid.StartsWith("fenris") => CASCGameType.D4,
                 _ => throw new Exception("Unable to detect game type by uid")
             };
         }
@@ -88,7 +90,7 @@ namespace CASCLib
                 CASCGameType.HotS => "HeroesData",
                 CASCGameType.S2 => "SC2Data",
                 CASCGameType.Hearthstone => "Hearthstone_Data",
-                CASCGameType.WoW or CASCGameType.D3 or CASCGameType.WC3 or CASCGameType.D2R => "Data",
+                CASCGameType.WoW or CASCGameType.D3 or CASCGameType.D4 or CASCGameType.WC3 or CASCGameType.D2R => "Data",
                 CASCGameType.Odin => "Data",
                 CASCGameType.Overwatch => "data/casc",
                 _ => throw new Exception("GetDataFolder called with unsupported gameType")

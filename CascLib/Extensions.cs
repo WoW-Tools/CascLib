@@ -116,11 +116,27 @@ namespace CASCLib
             }
         }
 
+        public static void CopyBytesFromPos(this Stream input, Stream output, int offset, int bytes)
+        {
+            byte[] buffer = new byte[0x1000];
+            int read;
+            int pos = 0;
+            while (pos < offset && (read = input.Read(buffer, 0, Math.Min(buffer.Length, offset - pos))) > 0)
+            {
+                pos += read;
+            }
+            while (bytes > 0 && (read = input.Read(buffer, 0, Math.Min(buffer.Length, bytes))) > 0)
+            {
+                output.Write(buffer, 0, read);
+                bytes -= read;
+            }
+        }
+
         public static void CopyToStream(this Stream src, Stream dst, long len, BackgroundWorkerEx progressReporter = null)
         {
             long done = 0;
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             Span<byte> buf = stackalloc byte[0x1000];
 #else
             byte[] buf = new byte[0x1000];
@@ -130,7 +146,7 @@ namespace CASCLib
             {
                 if (progressReporter != null && progressReporter.CancellationPending)
                     return;
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
                 count = src.Read(buf);
                 dst.Write(buf.Slice(0, count));
 #else
@@ -161,7 +177,7 @@ namespace CASCLib
 
         public static string ToHexString(this byte[] data)
         {
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             return Convert.ToHexString(data);
 #else
             if (data == null)
@@ -215,7 +231,7 @@ namespace CASCLib
 
         public static unsafe string ToHexString(this in MD5Hash key)
         {
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             ref MD5Hash md5ref = ref Unsafe.AsRef(in key);
             var md5Span = MemoryMarshal.CreateReadOnlySpan(ref md5ref, 1);
             var span = MemoryMarshal.AsBytes(md5Span);
@@ -231,6 +247,14 @@ namespace CASCLib
         }
 
         public static MD5Hash ToMD5(this byte[] array)
+        {
+            if (array.Length != 16)
+                throw new ArgumentException("array size != 16", nameof(array));
+
+            return Unsafe.As<byte, MD5Hash>(ref array[0]);
+        }
+
+        public static MD5Hash ToMD5(this Span<byte> array)
         {
             if (array.Length != 16)
                 throw new ArgumentException("array size != 16", nameof(array));
@@ -272,7 +296,7 @@ namespace CASCLib
 
         public static byte[] FromHexString(this string str)
         {
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             return Convert.FromHexString(str);
 #else
             if (str == null)

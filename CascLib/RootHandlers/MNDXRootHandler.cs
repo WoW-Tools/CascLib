@@ -418,7 +418,8 @@ namespace CASCLib
             mndxRootEntriesValid.Clear();
             Packages.Clear();
             PackagesLocale.Clear();
-            Root.Entries.Clear();
+            Root.Files.Clear();
+            Root.Folders.Clear();
             CASCFile.Files.Clear();
         }
 
