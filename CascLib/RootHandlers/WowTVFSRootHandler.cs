@@ -5,14 +5,27 @@ using System.Linq;
 
 namespace CASCLib
 {
+    public struct WowVfsRootEntry
+    {
+        public MD5Hash cKey;
+        public ContentFlags ContentFlags;
+        public LocaleFlags LocaleFlags;
+        public MD5Hash eKey;
+        public int ContentOffset; // not used
+        public int ContentLength;
+        public int CftOffset; // only used once and not need to be stored
+    }
+
     public sealed class WowTVFSRootHandler : TVFSRootHandler
     {
-        private readonly MultiDictionary<int, RootEntry> RootData = new MultiDictionary<int, RootEntry>();
+        private readonly MultiDictionary<int, WowVfsRootEntry> RootData = new MultiDictionary<int, WowVfsRootEntry>();
         private readonly Dictionary<int, ulong> FileDataStore = new Dictionary<int, ulong>();
         private readonly Dictionary<ulong, int> FileDataStoreReverse = new Dictionary<ulong, int>();
+        private readonly HashSet<ulong> UnknownFiles = new HashSet<ulong>();
 
         public override int Count => RootData.Count;
         public override int CountTotal => RootData.Sum(re => re.Value.Count);
+        public override int CountUnknown => UnknownFiles.Count;
 
         public WowTVFSRootHandler(BackgroundWorkerEx worker, CASCHandler casc) : base(worker, casc)
         {
@@ -37,10 +50,17 @@ namespace CASCLib
                     byte[] cKeyBytes = entryData.Substring(21, 32).FromHexString();
                     MD5Hash cKey = cKeyBytes.ToMD5();
 #endif
-                    Logger.WriteLine($"{tvfsEntry.Value.Orig} {locale} {content} {fileDataId} {cKey.ToHexString()}");
 
                     ulong hash = FileDataHash.ComputeHash(fileDataId);
-                    RootData.Add(fileDataId, new RootEntry { cKey = cKey, LocaleFlags = locale, ContentFlags = content });
+
+                    Logger.WriteLine($"{tvfsEntry.Value.Orig} {tvfsEntry.Key:X16} {hash:X16} {locale} {content} {fileDataId} {cKey.ToHexString()}");
+
+                    var vfsEntries = base.GetVfsRootEntries(tvfsEntry.Key);
+
+                    if (vfsEntries.Count != 1)
+                        throw new Exception("vfsEntries.Count != 1");
+
+                    RootData.Add(fileDataId, new WowVfsRootEntry { cKey = cKey, LocaleFlags = locale, ContentFlags = content, eKey = vfsEntries[0].eKey, ContentLength = vfsEntries[0].ContentLength, ContentOffset = vfsEntries[0].ContentOffset, CftOffset = vfsEntries[0].CftOffset });
 
                     if (FileDataStore.TryGetValue(fileDataId, out ulong hash2))
                     {
@@ -57,7 +77,7 @@ namespace CASCLib
 
                     FileDataStore.Add(fileDataId, hash);
                     FileDataStoreReverse.Add(hash, fileDataId);
-                    SetHashDuplicate(tvfsEntry.Key, hash);
+                    //SetHashDuplicate(tvfsEntry.Key, hash);
                 }
                 else
                 {
@@ -70,24 +90,24 @@ namespace CASCLib
 
         public IEnumerable<RootEntry> GetAllEntriesByFileDataId(int fileDataId) => GetAllEntries(GetHashByFileDataId(fileDataId));
 
-        public override IEnumerable<KeyValuePair<ulong, RootEntry>> GetAllEntries()
-        {
-            foreach (var set in RootData)
-                foreach (var entry in set.Value)
-                    yield return new KeyValuePair<ulong, RootEntry>(FileDataStore[set.Key], entry);
-        }
+        //public override IEnumerable<KeyValuePair<ulong, RootEntry>> GetAllEntries()
+        //{
+        //    foreach (var set in RootData)
+        //        foreach (var entry in set.Value)
+        //            yield return new KeyValuePair<ulong, RootEntry>(FileDataStore[set.Key], entry);
+        //}
 
-        public override IEnumerable<RootEntry> GetAllEntries(ulong hash)
-        {
-            if (!FileDataStoreReverse.TryGetValue(hash, out int fileDataId))
-                yield break;
+        //public override IEnumerable<RootEntry> GetAllEntries(ulong hash)
+        //{
+        //    if (!FileDataStoreReverse.TryGetValue(hash, out int fileDataId))
+        //        yield break;
 
-            if (!RootData.TryGetValue(fileDataId, out List<RootEntry> result))
-                yield break;
+        //    if (!RootData.TryGetValue(fileDataId, out List<RootEntry> result))
+        //        yield break;
 
-            foreach (var entry in result)
-                yield return entry;
-        }
+        //    foreach (var entry in result)
+        //        yield return entry;
+        //}
 
         public IEnumerable<RootEntry> GetEntriesByFileDataId(int fileDataId) => GetEntries(GetHashByFileDataId(fileDataId));
 
@@ -124,6 +144,37 @@ namespace CASCLib
         {
             FileDataStore.TryGetValue(fileDataId, out ulong hash);
             return hash;
+        }
+
+        public override List<VfsRootEntry> GetVfsRootEntries(ulong hash)
+        {
+            if (!FileDataStoreReverse.TryGetValue(hash, out int fileDataId))
+                return null;
+
+            if (!RootData.TryGetValue(fileDataId, out List<WowVfsRootEntry> result))
+                return null;
+
+            var rootInfos = result;
+
+            if (!rootInfos.Any())
+                return null;
+
+            var rootInfosLocale = rootInfos.Where(re => (re.LocaleFlags & Locale) != LocaleFlags.None);
+
+            if (rootInfosLocale.Count() > 1)
+            {
+                IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride;
+
+                if (OverrideArchive)
+                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                else
+                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
+
+                if (rootInfosLocaleOverride.Any())
+                    rootInfosLocale = rootInfosLocaleOverride;
+            }
+
+            return rootInfosLocale.Select(e => new VfsRootEntry { eKey = e.eKey, ContentLength = e.ContentLength, ContentOffset = e.ContentOffset, CftOffset = e.CftOffset }).ToList();
         }
 
         public override void LoadListFile(string path, BackgroundWorkerEx worker = null)
@@ -197,6 +248,7 @@ namespace CASCLib
 
             // Reset counts
             CountSelect = 0;
+            UnknownFiles.Clear();
 
             // Create new tree based on specified locale
             foreach (var rootEntry in RootData)
@@ -205,7 +257,7 @@ namespace CASCLib
 
                 if (rootInfosLocale.Count() > 1)
                 {
-                    IEnumerable<RootEntry> rootInfosLocaleOverride;
+                    IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride;
 
                     if (OverrideArchive)
                         rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
@@ -226,6 +278,7 @@ namespace CASCLib
                 if (!CASCFile.Files.TryGetValue(hash, out CASCFile file))
                 {
                     filename = "unknown\\" + "FILEDATA_" + rootEntry.Key;
+                    UnknownFiles.Add(hash);
                 }
                 else
                 {

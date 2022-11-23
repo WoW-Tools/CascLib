@@ -244,14 +244,13 @@ namespace CASCLib
             if (Root is TVFSRootHandler vfs)
             {
                 var vfsEntries = vfs.GetVfsRootEntries(hash);
-                if (vfsEntries.Count == 1)
+
+                if (vfsEntries != null)
                 {
-                    SaveFileTo(vfsEntries[0].eKey, extractPath, fullName);
-                    return;
-                }
-                else
-                {
-                    SaveLargeFile(vfsEntries, extractPath, fullName);
+                    if (vfsEntries.Count == 1)
+                        SaveFileTo(vfsEntries[0].eKey, extractPath, fullName);
+                    else
+                        SaveLargeFile(vfsEntries, extractPath, fullName);
                     return;
                 }
             }

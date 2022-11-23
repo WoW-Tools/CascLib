@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace CASCLib
@@ -53,7 +52,7 @@ namespace CASCLib
                         if (!CASCFile.Files.ContainsKey(filehash))
                         {
                             entry = new CASCFile(filehash, file);
-                            CASCFile.Files[filehash] = (CASCFile)entry;
+                            CASCFile.Files[filehash] = entry;
                         }
                         else
                             entry = CASCFile.Files[filehash];

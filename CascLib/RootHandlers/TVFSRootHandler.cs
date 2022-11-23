@@ -508,7 +508,7 @@ namespace CASCLib
             return GetEntriesForSelectedLocale(hash);
         }
 
-        public List<VfsRootEntry> GetVfsRootEntries(ulong hash)
+        public virtual List<VfsRootEntry> GetVfsRootEntries(ulong hash)
         {
             tvfsRootData.TryGetValue(hash, out var vfsRootEntry);
             return vfsRootEntry;
