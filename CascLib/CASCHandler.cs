@@ -133,8 +133,10 @@ namespace CASCLib
 
         public override bool FileExists(int fileDataId)
         {
-            if (Root is WowRootHandler rh)
-                return rh.FileExist(fileDataId);
+            if (Root is WowRootHandler wrh)
+                return wrh.FileExist(fileDataId);
+            if (Root is WowTVFSRootHandler wtrh)
+                return wtrh.FileExist(fileDataId);
             return false;
         }
 

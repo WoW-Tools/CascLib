@@ -53,8 +53,9 @@ namespace CASCLib
 
                     ulong hash = FileDataHash.ComputeHash(fileDataId);
 
+#if DEBUG
                     Logger.WriteLine($"{tvfsEntry.Value.Orig} {tvfsEntry.Key:X16} {hash:X16} {locale} {content} {fileDataId} {cKey.ToHexString()}");
-
+#endif
                     var vfsEntries = base.GetVfsRootEntries(tvfsEntry.Key);
 
                     if (vfsEntries.Count != 1)
@@ -79,10 +80,12 @@ namespace CASCLib
                     FileDataStoreReverse.Add(hash, fileDataId);
                     //SetHashDuplicate(tvfsEntry.Key, hash);
                 }
+#if DEBUG
                 else
                 {
                     Logger.WriteLine($"{tvfsEntry.Value.Orig} {LocaleFlags.All} {ContentFlags.None} {0}");
                 }
+#endif
             }
 
             worker?.ReportProgress(100);

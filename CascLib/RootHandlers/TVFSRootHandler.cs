@@ -558,6 +558,7 @@ namespace CASCLib
 
         public override void Dump(EncodingHandler encodingHandler = null)
         {
+#if DEBUG
             Logger.WriteLine("TVFSRootHandler Dump:");
 
             Dictionary<ulong, int> keyCounts = new Dictionary<ulong, int>();
@@ -623,6 +624,7 @@ namespace CASCLib
                 Logger.WriteLine($"Key: {kv.Key:X16} Count: {kv.Value}");
             }
         }
+#endif
     }
 
     static class SpanExtensions
