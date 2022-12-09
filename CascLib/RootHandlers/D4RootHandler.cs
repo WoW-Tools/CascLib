@@ -308,7 +308,10 @@ namespace CASCLib
         Aspect = 128,
         ABTest = 129,
         Stagger = 130,
-        MAX_SNO_GROUPS = 131,
+        EyeColor = 131,
+        Makeup = 132,
+        MarkingColor = 133,
+        MAX_SNO_GROUPS = 134,
     }
 
     public class CoreTOCParserD4
@@ -464,6 +467,9 @@ namespace CASCLib
             [(SNOGroupD4)128] = ".asp",
             [(SNOGroupD4)129] = ".abt",
             [(SNOGroupD4)130] = ".stg",
+            [(SNOGroupD4)131] = ".eye",
+            [(SNOGroupD4)132] = ".mak",
+            [(SNOGroupD4)133] = ".mcl",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
