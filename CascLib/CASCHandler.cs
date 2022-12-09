@@ -222,13 +222,13 @@ namespace CASCLib
             if (Root is TVFSRootHandler vfs)
             {
                 var vfsEntries = vfs.GetVfsRootEntries(hash);
-                if (vfsEntries.Count == 1)
+
+                if (vfsEntries != null)
                 {
-                    return OpenFile(vfsEntries[0].eKey);
-                }
-                else
-                {
-                    throw new NotSupportedException();
+                    if (vfsEntries.Count == 1)
+                        return OpenFile(vfsEntries[0].eKey);
+                    else
+                        throw new NotSupportedException();
                 }
             }
 
