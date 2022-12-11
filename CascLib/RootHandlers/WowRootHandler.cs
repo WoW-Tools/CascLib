@@ -102,6 +102,7 @@ namespace CASCLib
         public override int Count => RootData.Count;
         public override int CountTotal => RootData.Sum(re => re.Value.Count);
         public override int CountUnknown => UnknownFiles.Count;
+        public IReadOnlyDictionary<int, List<RootEntry>> RootEntries => RootData;
 
         public WowRootHandler(BinaryReader stream, BackgroundWorkerEx worker)
         {

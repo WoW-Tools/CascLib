@@ -22,6 +22,7 @@ namespace CASCLib
         private readonly Dictionary<int, ulong> FileDataStore = new Dictionary<int, ulong>();
         private readonly Dictionary<ulong, int> FileDataStoreReverse = new Dictionary<ulong, int>();
         private readonly HashSet<ulong> UnknownFiles = new HashSet<ulong>();
+        public IReadOnlyDictionary<int, List<WowVfsRootEntry>> RootEntries => RootData;
 
         public override int Count => RootData.Count;
         public override int CountTotal => RootData.Sum(re => re.Value.Count);
