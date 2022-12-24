@@ -263,7 +263,7 @@ namespace CASCLib
             [0x70AEC09B193DE12B] = "1181EB115503888DD1127DB045AB1A90".FromHexString(), // TactKeyId 396
             [0xCAC9A9AD68A71FD3] = "1B9017C0DABC23F70E845DFBE99D5F17".FromHexString(), // TactKeyId 397
             [0x6BBB68F40F470401] = "15C0DBC6DAF7A8ED41637783EE29D517".FromHexString(), // TactKeyId 398
-            //[0x7B7CF6626F5CF873] = "????????????????????????????????".FromHexString(), // TactKeyId 399
+            [0x7B7CF6626F5CF873] = "3BD6A9D4F14D60658B32F4E2D62377C1".FromHexString(), // TactKeyId 399
             //[0x3146CA370908382D] = "????????????????????????????????".FromHexString(), // TactKeyId 401
             [0xA2798DFCB1250E3E] = "69A2AD526E17FD9B1EC53B8754368B12".FromHexString(), // TactKeyId 402
             [0x27C95702825CEEA9] = "75F90192F6F560E2F58829FCBD4EC59E".FromHexString(), // TactKeyId 403
@@ -310,6 +310,7 @@ namespace CASCLib
             [0x024B699A3997EB72] = "DF9B7E0562A99CB6DAA4A392CAEC0823".FromHexString(), // TactKeyId 484
             [0x84F8A76EC1A549BF] = "41AA80BBB5594E8EAA514A0D801C4C76".FromHexString(), // TactKeyId 485
             [0x625D0BAE331A3D20] = "AAA335954CADB874ACD14993FEEA7D98".FromHexString(), // TactKeyId 487
+            [0x4D58239760079E76] = "0C943768B48B100550D8F7FE62AFFCFE".FromHexString(), // TactKeyId 7413
             // BNA 1.5.0 Alpha
             [0x2C547F26A2613E01] = "37C50C102D4C9E3A5AC069F072B1417D".FromHexString(),
             // Warcraft III: Reforged
