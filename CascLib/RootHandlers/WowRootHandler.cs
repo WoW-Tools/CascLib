@@ -239,6 +239,13 @@ namespace CASCLib
                     yield return new KeyValuePair<ulong, RootEntry>(FileDataStore[set.Key], entry);
         }
 
+        public IEnumerable<(int FileDataId, RootEntry Entry)> GetAllEntriesWithFileDataId()
+        {
+            foreach (var set in RootData)
+                foreach (var entry in set.Value)
+                    yield return (set.Key, entry);
+        }
+
         public override IEnumerable<RootEntry> GetAllEntries(ulong hash)
         {
             if (!FileDataStoreReverse.TryGetValue(hash, out int fileDataId))

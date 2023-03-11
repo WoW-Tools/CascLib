@@ -181,6 +181,14 @@ namespace CASCLib
             return rootInfosLocale.Select(e => new VfsRootEntry { eKey = e.eKey, ContentLength = e.ContentLength, ContentOffset = e.ContentOffset, CftOffset = e.CftOffset }).ToList();
         }
 
+        public int GetFileDataIdByHash(ulong hash)
+        {
+            FileDataStoreReverse.TryGetValue(hash, out int fid);
+            return fid;
+        }
+
+        public int GetFileDataIdByName(string name) => GetFileDataIdByHash(Hasher.ComputeHash(name));
+
         public override void LoadListFile(string path, BackgroundWorkerEx worker = null)
         {
             //CASCFile.Files.Clear();
