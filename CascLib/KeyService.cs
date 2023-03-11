@@ -284,7 +284,7 @@ namespace CASCLib
             [0xF7E1D001DC9D1339] = "1041CBA8D47EFE9E59617FEF9467552B".FromHexString(), // TactKeyId 425
             [0xAE5194D30435C4FB] = "F94E76CBAA922EE1CE68CC33B5814014".FromHexString(), // TactKeyId 426
             [0xAA0C3B515E495282] = "7988313692003F50ECCC8499A3A943E7".FromHexString(), // TactKeyId 427
-            //[0x583C5B29BF208655] = "????????????????????????????????".FromHexString(), // TactKeyId 428
+            [0x0D2AECE0D46D103C] = "49A24E51C4F0E97AC97B1F919F1B2B4D".FromHexString(), // TactKeyId 428
             //[0x583C5B29BF208655] = "????????????????????????????????".FromHexString(), // TactKeyId 429
             //[0x71046E55CD9DA78A] = "????????????????????????????????".FromHexString(), // TactKeyId 431
             [0xBB2E41027A527755] = "7A0FB2710F08A8A6FDC01DCA09D24604".FromHexString(), // TactKeyId 432
@@ -312,6 +312,9 @@ namespace CASCLib
             [0x625D0BAE331A3D20] = "AAA335954CADB874ACD14993FEEA7D98".FromHexString(), // TactKeyId 487
             [0x31A110E087F8D181] = "85D617661E50C4D95508753E7E301842".FromHexString(), // TactKeyId 7092
             [0x4D58239760079E76] = "0C943768B48B100550D8F7FE62AFFCFE".FromHexString(), // TactKeyId 7413
+            [0xA0CCE64398FF8992] = "5DA4F36F4638F6723817BD758BBFE932".FromHexString(), // TactKeyId 7430
+            [0x5C8B601AC2E8E3F8] = "2D02CB4D7FF0329B7915C2404ACD7783".FromHexString(), // TactKeyId 7537
+            [0xCB117F47F4C8AC57] = "4B076BF49D29A158EB425B9105A968E9".FromHexString(), // TactKeyId 7541
             [0xF277310B18A1FFBA] = "8E3540FA1D7DCFB4541601FD1659DE50".FromHexString(), // TactKeyId 7549
             // BNA 1.5.0 Alpha
             [0x2C547F26A2613E01] = "37C50C102D4C9E3A5AC069F072B1417D".FromHexString(),
