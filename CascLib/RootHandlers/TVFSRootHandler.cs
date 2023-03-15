@@ -402,7 +402,7 @@ namespace CASCLib
                             ulong fileHash = Hasher.ComputeHash(fileNameNew);
                             fileTree.Add(fileHash, (fileName, fileNameNew));
 
-                            List<VfsRootEntry> vfsRootEntries = new List<VfsRootEntry>();
+                            List<VfsRootEntry> vfsRootEntries = new List<VfsRootEntry>(dwSpanCount);
 
                             for (int dwSpanIndex = 0; dwSpanIndex < dwSpanCount; dwSpanIndex++)
                             {

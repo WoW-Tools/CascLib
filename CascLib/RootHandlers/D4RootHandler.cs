@@ -311,7 +311,13 @@ namespace CASCLib
         EyeColor = 131,
         Makeup = 132,
         MarkingColor = 133,
-        MAX_SNO_GROUPS = 134,
+        HairColor = 134,
+        DungeonAffix = 135,
+        Activity = 136,
+        HairStyle = 138,
+        FacialHair = 139,
+        Face = 140,
+        MAX_SNO_GROUPS = 141,
     }
 
     public class CoreTOCParserD4
@@ -470,6 +476,13 @@ namespace CASCLib
             [(SNOGroupD4)131] = ".eye",
             [(SNOGroupD4)132] = ".mak",
             [(SNOGroupD4)133] = ".mcl",
+            [(SNOGroupD4)134] = ".hcl",
+            [(SNOGroupD4)135] = ".dax",
+            [(SNOGroupD4)136] = ".act",
+            [(SNOGroupD4)137] = "",
+            [(SNOGroupD4)138] = ".har",
+            [(SNOGroupD4)139] = ".fhr",
+            [(SNOGroupD4)140] = ".fac",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
