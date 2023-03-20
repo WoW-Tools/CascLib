@@ -518,7 +518,7 @@ namespace CASCLib
             if (tvfsRootData.TryGetValue(oldHash, out var vfsRootEntry))
             {
                 tvfsRootData[newHash] = vfsRootEntry;
-                //fileTree[newHash] = fileTree[oldHash];
+                fileTree[newHash] = fileTree[oldHash];
             }
             if (tvfsData.TryGetValue(oldHash, out var rootEntry))
             {

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace CASCLib
 {
@@ -10,6 +9,7 @@ namespace CASCLib
     {
         private CoreTOCParserD4 tocParser;
         private CASCHandler cascHandler;
+        private readonly Dictionary<int, int> sharedPayloads = new Dictionary<int, int>();
 
         public D4RootHandler(BackgroundWorkerEx worker, CASCHandler casc) : base(worker, casc)
         {
@@ -23,6 +23,31 @@ namespace CASCLib
             using (var file = casc.OpenFile(coreTocEntry.eKey))
                 tocParser = new CoreTOCParserD4(file);
 
+            // Parse CoreTOCSharedPayloadsMapping.dat
+            var coreTocSharedPayloads = GetVfsRootEntries(Hasher.ComputeHash("Base\\CoreTOCSharedPayloadsMapping.dat")).FirstOrDefault();
+
+            using (var file = casc.OpenFile(coreTocSharedPayloads.eKey))
+            using (var br = new BinaryReader(file))
+            {
+                int unk1 = br.ReadInt32();
+                int count = br.ReadInt32();
+
+                //using StreamWriter sw = new StreamWriter("CoreTOCSharedPayloadsMapping.txt");
+
+                for (int i = 0; i < count; i++)
+                {
+                    int snoID = br.ReadInt32();
+                    int sharedSnoID = br.ReadInt32();
+
+                    sharedPayloads.Add(snoID, sharedSnoID);
+
+                    //var sno1 = tocParser.GetSNO(snoID);
+                    //var sno2 = tocParser.GetSNO(sharedSnoID);
+
+                    //sw.WriteLine($"{snoID} {sno1.GroupId} {sno1.Name} -> {sharedSnoID} {sno2.GroupId} {sno2.Name}");
+                }
+            }
+
             worker?.ReportProgress(100);
         }
 
@@ -31,24 +56,6 @@ namespace CASCLib
             tocParser = null;
             cascHandler = null;
             base.Clear();
-        }
-
-        private void AddFile(string pkg, D3RootEntry e)
-        {
-            string name = "x";
-
-            RootEntry entry = new RootEntry
-            {
-                cKey = e.cKey
-            };
-
-            if (Enum.TryParse(pkg, out LocaleFlags locale))
-                entry.LocaleFlags = locale;
-            else
-                entry.LocaleFlags = LocaleFlags.All;
-
-            ulong fileHash = Hasher.ComputeHash(name);
-            CASCFile.Files[fileHash] = new CASCFile(fileHash, name);
         }
 
         public override void LoadListFile(string path, BackgroundWorkerEx worker = null)
@@ -68,14 +75,13 @@ namespace CASCLib
 
             string[] locales = Enum.GetNames(typeof(LocaleFlags));
             string[] folders = new string[] { "Base", "Speech", "Text" };
-            string[] subfolders = new string[] { "child", "meta", "payload", "paylow" };
+            string[] subfolders = new string[] { "child", "meta", "payload", "paylow", "paymed" };
+            HashSet<string> payloadFolders = new HashSet<string> { "payload", "paylow", "paymed" };
 
             List<string> filesToRemove = new List<string>();
 
-            void CreateSNOEntry(string keyFull, string key, CASCFile file, string folder, string subfolder, int subid = -1)
+            void CreateSNOEntry(int snoid, CASCFile file, string folder, string subfolder, int subid = -1)
             {
-                int snoid = int.Parse(key);
-
                 SNOInfoD4 sno = tocParser.GetSNO(snoid);
                 if (sno != null)
                 {
@@ -91,7 +97,6 @@ namespace CASCLib
 
                     CreateSubTree(root, newHash, newName);
                     CountSelect++;
-                    filesToRemove.Add(keyFull);
                 }
                 else
                 {
@@ -136,14 +141,16 @@ namespace CASCLib
                                     if (tokens.Length != 2)
                                         continue;
 
+                                    int snoid = int.Parse(tokens[0]);
                                     int subId = int.Parse(tokens[1]);
-                                    CreateSNOEntry(child.Key, tokens[0], child.Value, folder, subfolder, subId);
+                                    CreateSNOEntry(snoid, child.Value, folder, subfolder, subId);
                                 }
                                 else
                                 {
                                     int snoid = int.Parse(child.Key);
-                                    CreateSNOEntry(child.Key, child.Key, child.Value, folder, subfolder);
+                                    CreateSNOEntry(snoid, child.Value, folder, subfolder);
                                 }
+                                filesToRemove.Add(child.Key);
                             }
 
                             CleanupFolder(subfolder1);
@@ -152,7 +159,31 @@ namespace CASCLib
                 }
             }
 
-            Logger.WriteLine("D4RootHandler: {0} file names missing extensions for locale {1}", CountUnknown, Locale);
+            foreach (var sharedPayload in sharedPayloads)
+            {
+                //var sno1 = tocParser.GetSNO(sharedPayload.Key);
+                var sno2 = tocParser.GetSNO(sharedPayload.Value);
+
+                // shared payloads seems to be only used for textures which are in "Base" folder
+                if (root.Folders.TryGetValue("Base", out var baseFolder))
+                {
+                    foreach (var payloadFolder in payloadFolders)
+                    {
+                        if (baseFolder.Folders.TryGetValue(payloadFolder, out var subfolder1))
+                        {
+                            if (subfolder1.Folders.TryGetValue(sno2.GroupId.ToString(), out var subfolder2))
+                            {
+                                if (subfolder2.Files.TryGetValue($"{sno2.Name}{sno2.Ext}", out var file))
+                                {
+                                    CreateSNOEntry(sharedPayload.Key, file, "Base", subfolder1.Name);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Logger.WriteLine($"D4RootHandler: {CountUnknown} file names missing for locale {Locale}");
 
             return root;
         }
@@ -322,7 +353,7 @@ namespace CASCLib
 
     public class CoreTOCParserD4
     {
-        private const int MAX_SNO_GROUPS = 131;
+        private const int MAX_SNO_GROUPS = 141;
 
         public unsafe struct TOCHeader
         {
@@ -536,7 +567,7 @@ namespace CASCLib
                             string name = br.ReadCString();
                             br.BaseStream.Position = oldPos;
 
-                            snoDic.Add(snoId, new SNOInfoD4() { GroupId = snoGroup, Name = name, Ext = extensions[snoGroup] });
+                            snoDic.Add(snoId, new SNOInfoD4() { GroupId = snoGroup, Name = name, Ext = extensions.TryGetValue(snoGroup, out var ext) ? ext : $".{(int)snoGroup:D3}" });
                         }
                     }
                 }
