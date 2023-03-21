@@ -48,6 +48,10 @@ namespace CASCLib
                 }
             }
 
+            // TODO: handle base/EncryptedSNOs.dat
+            // TODO: handle base/EncryptedNameDict-0x3fe9ca51458d7074.dat etc files
+            // TODO: handle base/CoreTOCReplacedSnosMapping.dat?
+
             worker?.ReportProgress(100);
         }
 
@@ -80,6 +84,15 @@ namespace CASCLib
 
             List<string> filesToRemove = new List<string>();
 
+            void CreateNewFileEntry(CASCFile file, string newName)
+            {
+                ulong newHash = Hasher.ComputeHash(newName);
+                SetHashDuplicate(file.Hash, newHash);
+
+                CreateSubTree(root, newHash, newName);
+                CountSelect++;
+            }
+
             void CreateSNOEntry(int snoid, CASCFile file, string folder, string subfolder, int subid = -1)
             {
                 SNOInfoD4 sno = tocParser.GetSNO(snoid);
@@ -92,11 +105,7 @@ namespace CASCLib
                     else
                         newName = Path.Combine(folder, subfolder, sno.GroupId.ToString(), $"{sno.Name}-{subid}{sno.Ext}");
 
-                    ulong newHash = Hasher.ComputeHash(newName);
-                    SetHashDuplicate(file.Hash, newHash);
-
-                    CreateSubTree(root, newHash, newName);
-                    CountSelect++;
+                    CreateNewFileEntry(file, newName);
                 }
                 else
                 {
@@ -171,7 +180,7 @@ namespace CASCLib
                     {
                         if (baseFolder.Folders.TryGetValue(payloadFolder, out var subfolder1))
                         {
-                            if (subfolder1.Folders.TryGetValue(sno2.GroupId.ToString(), out var subfolder2))
+                            if (subfolder1.Folders.TryGetValue($"{sno2.GroupId}", out var subfolder2))
                             {
                                 if (subfolder2.Files.TryGetValue($"{sno2.Name}{sno2.Ext}", out var file))
                                 {
@@ -182,6 +191,26 @@ namespace CASCLib
                     }
                 }
             }
+
+            // move "package" files
+            foreach (var folder in folders)
+            {
+                foreach (var locale in locales)
+                {
+                    var fileKey = $"{locale}.{folder}";
+                    if (root.Files.TryGetValue(fileKey, out var file))
+                    {
+                        string newName = $"Packages\\{fileKey}";
+                        CreateNewFileEntry(file, newName);
+                        filesToRemove.Add(fileKey);
+                    }
+                }
+            }
+
+            CreateNewFileEntry(root.Files["Base"], $"Packages\\enUS.Base");
+            filesToRemove.Add("Base");
+
+            CleanupFolder(root);
 
             Logger.WriteLine($"D4RootHandler: {CountUnknown} file names missing for locale {Locale}");
 
