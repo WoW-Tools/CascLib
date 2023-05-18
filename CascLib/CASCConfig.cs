@@ -13,6 +13,7 @@ namespace CASCLib
         None = 0,
         Download = 1,
         Install = 2,
+        FileIndex = 4
     }
 
     public class VerBarConfig

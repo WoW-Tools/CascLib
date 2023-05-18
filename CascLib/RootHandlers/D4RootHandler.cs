@@ -24,27 +24,32 @@ namespace CASCLib
                 tocParser = new CoreTOCParserD4(file);
 
             // Parse CoreTOCSharedPayloadsMapping.dat
-            var coreTocSharedPayloads = GetVfsRootEntries(Hasher.ComputeHash("Base\\CoreTOCSharedPayloadsMapping.dat")).FirstOrDefault();
-
-            using (var file = casc.OpenFile(coreTocSharedPayloads.eKey))
-            using (var br = new BinaryReader(file))
+            var vfsCoreTocSharedPayloads = GetVfsRootEntries(Hasher.ComputeHash("Base\\CoreTOCSharedPayloadsMapping.dat"));
+            // check if it exist (older versions missing it)
+            if (vfsCoreTocSharedPayloads != null)
             {
-                int unk1 = br.ReadInt32();
-                int count = br.ReadInt32();
+                var coreTocSharedPayloads = vfsCoreTocSharedPayloads.FirstOrDefault();
 
-                //using StreamWriter sw = new StreamWriter("CoreTOCSharedPayloadsMapping.txt");
-
-                for (int i = 0; i < count; i++)
+                using (var file = casc.OpenFile(coreTocSharedPayloads.eKey))
+                using (var br = new BinaryReader(file))
                 {
-                    int snoID = br.ReadInt32();
-                    int sharedSnoID = br.ReadInt32();
+                    int unk1 = br.ReadInt32();
+                    int count = br.ReadInt32();
 
-                    sharedPayloads.Add(snoID, sharedSnoID);
+                    //using StreamWriter sw = new StreamWriter("CoreTOCSharedPayloadsMapping.txt");
 
-                    //var sno1 = tocParser.GetSNO(snoID);
-                    //var sno2 = tocParser.GetSNO(sharedSnoID);
+                    for (int i = 0; i < count; i++)
+                    {
+                        int snoID = br.ReadInt32();
+                        int sharedSnoID = br.ReadInt32();
 
-                    //sw.WriteLine($"{snoID} {sno1.GroupId} {sno1.Name} -> {sharedSnoID} {sno2.GroupId} {sno2.Name}");
+                        sharedPayloads.Add(snoID, sharedSnoID);
+
+                        //var sno1 = tocParser.GetSNO(snoID);
+                        //var sno2 = tocParser.GetSNO(sharedSnoID);
+
+                        //sw.WriteLine($"{snoID} {sno1.GroupId} {sno1.Name} -> {sharedSnoID} {sno2.GroupId} {sno2.Name}");
+                    }
                 }
             }
 
