@@ -75,6 +75,9 @@ namespace CASCLib
 
             byte[] source = reader.ReadBytes(numBytes);
 
+            if (source.Length != numBytes)
+                throw new Exception("source.Length != numBytes");
+
             reader.BaseStream.Position += (0 - numBytes) & 0x07;
 
             return source.CopyTo<T>();
@@ -85,6 +88,9 @@ namespace CASCLib
             int numBytes = Unsafe.SizeOf<T>() * size;
 
             byte[] source = reader.ReadBytes(numBytes);
+
+            if (source.Length != numBytes)
+                throw new Exception("source.Length != numBytes");
 
             return source.CopyTo<T>();
         }
