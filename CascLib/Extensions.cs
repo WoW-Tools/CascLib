@@ -267,6 +267,17 @@ namespace CASCLib
 
             return Unsafe.As<byte, MD5Hash>(ref array[0]);
         }
+
+        public static string ReadNullTerminatedString(this BinaryReader br)
+        {
+            StringBuilder sb = new StringBuilder();
+            char c;
+
+            while ((c = Convert.ToChar(br.ReadByte())) != 0)
+                sb.Append(c);
+
+            return sb.ToString();
+        }
     }
 
     public static class CStringExtensions
