@@ -10,6 +10,7 @@ namespace CASCLib
         private CoreTOCParserD4 tocParser;
         private CASCHandler cascHandler;
         private readonly Dictionary<int, int> sharedPayloads = new Dictionary<int, int>();
+        private readonly Dictionary<int, string> encryptedNames = new Dictionary<int, string>();
 
         public D4RootHandler(BackgroundWorkerEx worker, CASCHandler casc) : base(worker, casc)
         {
@@ -53,8 +54,72 @@ namespace CASCLib
                 }
             }
 
-            // TODO: handle base/EncryptedSNOs.dat
-            // TODO: handle base/EncryptedNameDict-0x3fe9ca51458d7074.dat etc files
+            // Parse EncryptedSNOs.dat and collect encryption keys
+            var encryptedSNOsEntry = GetVfsRootEntries(Hasher.ComputeHash("Base\\EncryptedSNOs.dat")).FirstOrDefault();
+            var encKeys = new HashSet<ulong>();
+
+            using (var file = casc.OpenFile(encryptedSNOsEntry.eKey))
+            {
+                using (var br = new BinaryReader(file))
+                {
+                    int unkHash = br.ReadInt32();
+                    int count = br.ReadInt32();
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        int snoGroup = br.ReadInt32();
+                        int snoID = br.ReadInt32();
+                        ulong keyID = br.ReadUInt64();
+
+                        if (!encKeys.Contains(keyID))
+                            encKeys.Add(keyID);
+                    }
+                }
+            }
+
+            // Parse EncryptedNameDict-0xXXXXXXXXXXXXXXXX.dat files
+            foreach (var encKey in encKeys)
+            {
+                var encDictPath = $"Base\\EncryptedNameDict-0x{encKey:X16}.dat";
+                var encDictEntries = GetVfsRootEntries(Hasher.ComputeHash(encDictPath));
+
+                if (encDictEntries == null) continue;
+
+                var encDictEntry = encDictEntries.FirstOrDefault();
+
+                try
+                {
+                    using (var file = casc.OpenFile(encDictEntry.eKey))
+                    {
+                        using (var br = new BinaryReader(file))
+                        {
+                            var snoIDs = new List<int>();
+
+                            int unkHash = br.ReadInt32();
+                            int count = br.ReadInt32();
+
+                            for (int i = 0; i < count; i++)
+                            {
+                                int snoGroup = br.ReadInt32();
+                                int snoID = br.ReadInt32();
+
+                                snoIDs.Add(snoID);
+                            }
+
+                            for (int i = 0; i < count; i++)
+                            {
+                                var name = br.ReadCString();
+                                encryptedNames[snoIDs[i]] = name;
+                            }
+                        }
+                    }
+                }
+                catch (BLTEDecoderException)
+                {
+                    // Unknown key name
+                }
+            }
+
             // TODO: handle base/CoreTOCReplacedSnosMapping.dat?
 
             worker?.ReportProgress(100);
@@ -103,6 +168,9 @@ namespace CASCLib
                 SNOInfoD4 sno = tocParser.GetSNO(snoid);
                 if (sno != null)
                 {
+                    if (encryptedNames.TryGetValue(snoid, out string encName))    // Override with encrypted name
+                        sno.Name = encName;
+
                     string newName;
 
                     if (subid == -1)
