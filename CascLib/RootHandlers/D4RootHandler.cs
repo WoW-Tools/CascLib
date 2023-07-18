@@ -93,10 +93,10 @@ namespace CASCLib
                     {
                         using (var br = new BinaryReader(file))
                         {
-                            var snoIDs = new List<int>();
-
                             int unkHash = br.ReadInt32();
                             int count = br.ReadInt32();
+
+                            var snoIDs = new List<int>(count);
 
                             for (int i = 0; i < count; i++)
                             {
