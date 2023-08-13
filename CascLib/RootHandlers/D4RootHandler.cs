@@ -11,6 +11,7 @@ namespace CASCLib
         private CASCHandler cascHandler;
         private readonly Dictionary<int, int> sharedPayloads = new Dictionary<int, int>();
         private readonly Dictionary<int, string> encryptedNames = new Dictionary<int, string>();
+        private readonly Dictionary<int, (int group, ulong keyId)> encryptedSNOs = new Dictionary<int, (int group, ulong keyId)>();
 
         public D4RootHandler(BackgroundWorkerEx worker, CASCHandler casc) : base(worker, casc)
         {
@@ -56,7 +57,6 @@ namespace CASCLib
 
             // Parse EncryptedSNOs.dat and collect encryption keys
             var encryptedSNOsEntry = GetVfsRootEntries(Hasher.ComputeHash("Base\\EncryptedSNOs.dat")).FirstOrDefault();
-            var encKeys = new HashSet<ulong>();
 
             using (var file = casc.OpenFile(encryptedSNOsEntry.eKey))
             {
@@ -71,13 +71,19 @@ namespace CASCLib
                         int snoID = br.ReadInt32();
                         ulong keyID = br.ReadUInt64();
 
-                        if (!encKeys.Contains(keyID))
-                            encKeys.Add(keyID);
+                        encryptedSNOs.Add(snoID, (snoGroup, keyID));
                     }
                 }
             }
 
             // Parse EncryptedNameDict-0xXXXXXXXXXXXXXXXX.dat files
+#if NETSTANDARD2_0
+            var encKeys = new HashSet<ulong>();
+            foreach (var encSNO in encryptedSNOs)
+                encKeys.Add(encSNO.Value.keyId);
+#else
+            var encKeys = encryptedSNOs.Select(e => e.Value.keyId).ToHashSet();
+#endif
             foreach (var encKey in encKeys)
             {
                 var encDictPath = $"Base\\EncryptedNameDict-0x{encKey:X16}.dat";
@@ -168,8 +174,13 @@ namespace CASCLib
                 SNOInfoD4 sno = tocParser.GetSNO(snoid);
                 if (sno != null)
                 {
-                    if (encryptedNames.TryGetValue(snoid, out string encName))    // Override with encrypted name
-                        sno.Name = encName;
+                    if (encryptedSNOs.ContainsKey(snoid))
+                    {
+                        if (encryptedNames.TryGetValue(snoid, out string encName))    // Override with encrypted name
+                            sno.Name = encName;
+                        else
+                            sno.Name = $"_encrypted_{snoid}";
+                    }
 
                     string newName;
 
