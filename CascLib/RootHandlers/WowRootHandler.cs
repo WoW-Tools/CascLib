@@ -116,26 +116,48 @@ namespace CASCLib
 
             const int TSFMMagic = 0x4D465354;
 
+            int headerSize;
+            bool isLegacy;
+
             if (magic == TSFMMagic)
             {
-                numFilesTotal = stream.ReadInt32();
-                numFilesWithNameHash = stream.ReadInt32();
+                isLegacy = false;
 
-                if (numFilesTotal < 2000000)
+                if (stream.BaseStream.Length < 12)
+                    throw new Exception("build manifest is truncated");
+
+                int field04 = stream.ReadInt32();
+                int field08 = stream.ReadInt32();
+
+                int version = field08;
+                headerSize = field04;
+
+                if (version == 1)
                 {
-                    stream.BaseStream.Position -= 8;
-
-                    int unk1 = stream.ReadInt32();
-                    int unk2 = stream.ReadInt32();
                     numFilesTotal = stream.ReadInt32();
                     numFilesWithNameHash = stream.ReadInt32();
-                    int unk3 = stream.ReadInt32();
+                }
+                else
+                {
+                    numFilesTotal = field04;
+                    numFilesWithNameHash = field08;
+                    headerSize = 12;
                 }
             }
             else
             {
-                stream.BaseStream.Position -= 4;
+                isLegacy = true;
+                headerSize = 0;
+                numFilesTotal = (int)(stream.BaseStream.Length / 28);
+                numFilesWithNameHash = (int)(stream.BaseStream.Length / 28);
             }
+
+            if (stream.BaseStream.Length < headerSize)
+                throw new Exception("build manifest is truncated");
+
+            stream.BaseStream.Position = headerSize;
+
+            int blockIndex = 0;
 
             while (stream.BaseStream.Position < stream.BaseStream.Length)
             {
@@ -166,11 +188,11 @@ namespace CASCLib
                     fileDataIndex = filedataIds[i] + 1;
                 }
 
-                //Console.WriteLine("Block: {0} {1} (size {2})", block.ContentFlags, block.LocaleFlags, count);
+                //Console.WriteLine($"Block {blockIndex}: {contentFlags} {localeFlags} count {count}");
 
                 ulong[] nameHashes = null;
 
-                if (magic == TSFMMagic)
+                if (!isLegacy)
                 {
                     for (var i = 0; i < count; ++i)
                         entries[i].cKey = stream.Read<MD5Hash>();
@@ -213,7 +235,7 @@ namespace CASCLib
 
                     RootData.Add(fileDataId, entries[i]);
 
-                    //Console.WriteLine("File: {0:X8} {1:X16} {2}", fileDataId, hash, entries[i].cKey.ToHexString());
+                    //Console.WriteLine($"File: {fileDataId:X8} {hash:X16} {entries[i].cKey.ToHexString()}");
 
                     if (FileDataStore.TryGetValue(fileDataId, out ulong hash2))
                     {
@@ -240,6 +262,8 @@ namespace CASCLib
                 }
 
                 worker?.ReportProgress((int)(stream.BaseStream.Position / (float)stream.BaseStream.Length * 100));
+
+                blockIndex++;
             }
         }
 
