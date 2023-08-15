@@ -56,22 +56,26 @@ namespace CASCLib
             }
 
             // Parse EncryptedSNOs.dat and collect encryption keys
-            var encryptedSNOsEntry = GetVfsRootEntries(Hasher.ComputeHash("Base\\EncryptedSNOs.dat")).FirstOrDefault();
-
-            using (var file = casc.OpenFile(encryptedSNOsEntry.eKey))
+            var vfsEncryptedSNOs = GetVfsRootEntries(Hasher.ComputeHash("Base\\EncryptedSNOs.dat"));
+            if (vfsEncryptedSNOs != null)
             {
-                using (var br = new BinaryReader(file))
+                var encryptedSNOsEntry = vfsEncryptedSNOs.FirstOrDefault();
+
+                using (var file = casc.OpenFile(encryptedSNOsEntry.eKey))
                 {
-                    int unkHash = br.ReadInt32();
-                    int count = br.ReadInt32();
-
-                    for (int i = 0; i < count; i++)
+                    using (var br = new BinaryReader(file))
                     {
-                        int snoGroup = br.ReadInt32();
-                        int snoID = br.ReadInt32();
-                        ulong keyID = br.ReadUInt64();
+                        int unkHash = br.ReadInt32();
+                        int count = br.ReadInt32();
 
-                        encryptedSNOs.Add(snoID, (snoGroup, keyID));
+                        for (int i = 0; i < count; i++)
+                        {
+                            int snoGroup = br.ReadInt32();
+                            int snoID = br.ReadInt32();
+                            ulong keyID = br.ReadUInt64();
+
+                            encryptedSNOs.Add(snoID, (snoGroup, keyID));
+                        }
                     }
                 }
             }

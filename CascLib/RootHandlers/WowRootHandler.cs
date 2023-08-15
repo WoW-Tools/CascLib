@@ -118,8 +118,11 @@ namespace CASCLib
 
             if (magic == TSFMMagic)
             {
+                int unk1 = stream.ReadInt32();
+                int unk2 = stream.ReadInt32();
                 numFilesTotal = stream.ReadInt32();
                 numFilesWithNameHash = stream.ReadInt32();
+                int unk3 = stream.ReadInt32();
             }
             else
             {
@@ -202,7 +205,7 @@ namespace CASCLib
 
                     RootData.Add(fileDataId, entries[i]);
 
-                    //Console.WriteLine("File: {0:X8} {1:X16} {2}", entries[i].FileDataId, hash, entries[i].MD5.ToHexString());
+                    //Console.WriteLine("File: {0:X8} {1:X16} {2}", fileDataId, hash, entries[i].cKey.ToHexString());
 
                     if (FileDataStore.TryGetValue(fileDataId, out ulong hash2))
                     {
