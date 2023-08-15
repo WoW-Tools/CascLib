@@ -118,11 +118,19 @@ namespace CASCLib
 
             if (magic == TSFMMagic)
             {
-                int unk1 = stream.ReadInt32();
-                int unk2 = stream.ReadInt32();
                 numFilesTotal = stream.ReadInt32();
                 numFilesWithNameHash = stream.ReadInt32();
-                int unk3 = stream.ReadInt32();
+
+                if (numFilesTotal < 2000000)
+                {
+                    stream.BaseStream.Position -= 8;
+
+                    int unk1 = stream.ReadInt32();
+                    int unk2 = stream.ReadInt32();
+                    numFilesTotal = stream.ReadInt32();
+                    numFilesWithNameHash = stream.ReadInt32();
+                    int unk3 = stream.ReadInt32();
+                }
             }
             else
             {
