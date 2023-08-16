@@ -132,16 +132,16 @@ namespace CASCLib
                 int version = field08;
                 headerSize = field04;
 
-                if (version == 1)
-                {
-                    numFilesTotal = stream.ReadInt32();
-                    numFilesWithNameHash = stream.ReadInt32();
-                }
-                else
+                if (version != 1)
                 {
                     numFilesTotal = field04;
                     numFilesWithNameHash = field08;
                     headerSize = 12;
+                }
+                else
+                {
+                    numFilesTotal = stream.ReadInt32();
+                    numFilesWithNameHash = stream.ReadInt32();
                 }
             }
             else
