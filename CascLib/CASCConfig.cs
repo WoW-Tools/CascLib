@@ -312,6 +312,15 @@ namespace CASCLib
                     config._Builds.Add(cfg);
                 }
             }
+            else if (File.Exists("fakebuildconfighash"))
+            {
+                string buildKey = File.ReadAllText("fakebuildconfighash");
+                string buildCfgPath = Path.Combine(basePath, dataFolder, "config", buildKey.Substring(0, 2), buildKey.Substring(2, 2), buildKey);
+                using (Stream stream = new FileStream(buildCfgPath, FileMode.Open))
+                {
+                    config._Builds.Add(KeyValueConfig.ReadKeyValueConfig(stream));
+                }
+            }
             else
             {
                 string buildKey = config.GetBuildInfoVariable("BuildKey");
@@ -326,6 +335,15 @@ namespace CASCLib
             if (File.Exists("fakecdnconfig"))
             {
                 using (Stream stream = new FileStream("fakecdnconfig", FileMode.Open))
+                {
+                    config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
+                }
+            }
+            else if (File.Exists("fakecdnconfighash"))
+            {
+                string cdnKey = File.ReadAllText("fakecdnconfighash");
+                string cdnCfgPath = Path.Combine(basePath, dataFolder, "config", cdnKey.Substring(0, 2), cdnKey.Substring(2, 2), cdnKey);
+                using (Stream stream = new FileStream(cdnCfgPath, FileMode.Open))
                 {
                     config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
                 }
