@@ -84,7 +84,7 @@ namespace CASCLib
             catch (BLTEDecoderException exc) when (exc.ErrorCode == 3)
             {
                 if (CASCConfig.ThrowOnMissingDecryptionKey)
-                    throw exc;
+                    throw;
                 return null;
             }
             catch// (Exception exc) when (!(exc is BLTEDecoderException))
