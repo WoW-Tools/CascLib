@@ -466,8 +466,14 @@ namespace CASCLib
         HairStyle = 138,
         FacialHair = 139,
         Face = 140,
+        PassivePowerContainer = 142,
+        MountProfile = 143,
         AICoordinator = 144,
-        MAX_SNO_GROUPS = 147,
+        CrafterTab = 145,
+        TownPortalCosmetic = 146,
+        Wizard = 148,
+        FootstepTable = 149,
+        MAX_SNO_GROUPS = 150,
     }
 
     public class CoreTOCParserD4
@@ -634,11 +640,14 @@ namespace CASCLib
             [(SNOGroupD4)139] = ".fhr",
             [(SNOGroupD4)140] = ".fac",
             [(SNOGroupD4)141] = "",
-            [(SNOGroupD4)142] = "",
-            [(SNOGroupD4)143] = "",
+            [(SNOGroupD4)142] = ".ppc",
+            [(SNOGroupD4)143] = ".mpr",
             [(SNOGroupD4)144] = ".aic",
-            [(SNOGroupD4)145] = "",
-            [(SNOGroupD4)146] = "",
+            [(SNOGroupD4)145] = ".ctb",
+            [(SNOGroupD4)146] = ".tpc",
+            [(SNOGroupD4)147] = "",
+            [(SNOGroupD4)148] = ".wiz",
+            [(SNOGroupD4)149] = ".fst",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
