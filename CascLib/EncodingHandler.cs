@@ -87,6 +87,13 @@ namespace CASCLib
                 // each chunk is 4096 bytes, and zero padding at the end
                 long remaining = CHUNK_SIZE - ((stream.BaseStream.Position - chunkStart) % CHUNK_SIZE);
 
+                if (remaining == 0xFFF)
+                {
+                    stream.BaseStream.Position -= 1;
+                    i++;
+                    continue;
+                }
+
                 if (remaining > 0)
                     stream.BaseStream.Position += remaining;
 
