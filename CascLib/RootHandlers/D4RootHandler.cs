@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -90,10 +91,14 @@ namespace CASCLib
 #endif
             foreach (var encKey in encKeys)
             {
+                if (!KeyService.HasKey(BinaryPrimitives.ReverseEndianness(encKey)))
+                    continue;
+
                 var encDictPath = $"Base\\EncryptedNameDict-0x{encKey:X16}.dat";
                 var encDictEntries = GetVfsRootEntries(Hasher.ComputeHash(encDictPath));
 
-                if (encDictEntries == null) continue;
+                if (encDictEntries == null)
+                    continue;
 
                 var encDictEntry = encDictEntries.FirstOrDefault();
 
@@ -466,8 +471,20 @@ namespace CASCLib
         HairStyle = 138,
         FacialHair = 139,
         Face = 140,
+        MercenaryClass = 141,
+        PassivePowerContainer = 142,
+        MountProfile = 143,
         AICoordinator = 144,
-        MAX_SNO_GROUPS = 147,
+        CrafterTab = 145,
+        TownPortalCosmetic = 146,
+        AxeTest = 147,
+        Wizard = 148,
+        FootstepTable = 149,
+        Modal = 150,
+        CollectiblePower = 151,
+        AppearanceSet = 152,
+        Preset = 153,
+        MAX_SNO_GROUPS = 154,
     }
 
     public class CoreTOCParserD4
@@ -633,12 +650,19 @@ namespace CASCLib
             [(SNOGroupD4)138] = ".har",
             [(SNOGroupD4)139] = ".fhr",
             [(SNOGroupD4)140] = ".fac",
-            [(SNOGroupD4)141] = "",
-            [(SNOGroupD4)142] = "",
-            [(SNOGroupD4)143] = "",
+            [(SNOGroupD4)141] = ".mrc",
+            [(SNOGroupD4)142] = ".ppc",
+            [(SNOGroupD4)143] = ".mpp",
             [(SNOGroupD4)144] = ".aic",
-            [(SNOGroupD4)145] = "",
-            [(SNOGroupD4)146] = "",
+            [(SNOGroupD4)145] = ".ctb",
+            [(SNOGroupD4)146] = ".tpc",
+            [(SNOGroupD4)147] = ".axe",
+            [(SNOGroupD4)148] = ".wiz",
+            [(SNOGroupD4)149] = ".fst",
+            [(SNOGroupD4)150] = ".mdl",
+            [(SNOGroupD4)151] = ".cpw",
+            [(SNOGroupD4)152] = ".aps",
+            [(SNOGroupD4)153] = ".pst",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
