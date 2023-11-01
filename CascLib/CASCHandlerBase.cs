@@ -238,7 +238,7 @@ namespace CASCLib
             return new BinaryReader(casc.OpenFile(encInfo.Keys[0]));
         }
 
-        protected BinaryReader OpenDownloadFile(EncodingHandler enc, CASCHandlerBase casc)
+        protected static BinaryReader OpenDownloadFile(EncodingHandler enc, CASCHandlerBase casc)
         {
             if (!enc.GetEntry(casc.Config.DownloadCKey, out EncodingEntry encInfo))
                 throw new FileNotFoundException("encoding info for download file missing!");
@@ -248,7 +248,7 @@ namespace CASCLib
             return new BinaryReader(casc.OpenFile(encInfo.Keys[0]));
         }
 
-        protected BinaryReader OpenRootFile(EncodingHandler enc, CASCHandlerBase casc)
+        protected static BinaryReader OpenRootFile(EncodingHandler enc, CASCHandlerBase casc)
         {
             if (!enc.GetEntry(casc.Config.RootCKey, out EncodingEntry encInfo))
                 throw new FileNotFoundException("encoding info for root file missing!");
@@ -258,7 +258,7 @@ namespace CASCLib
             return new BinaryReader(casc.OpenFile(encInfo.Keys[0]));
         }
 
-        protected BinaryReader OpenEncodingFile(CASCHandlerBase casc)
+        protected static BinaryReader OpenEncodingFile(CASCHandlerBase casc)
         {
             //ExtractFile(Config.EncodingKey, ".", "encoding");
 
