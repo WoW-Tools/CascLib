@@ -79,7 +79,7 @@ namespace CASCLib
         public LocaleFlags LocaleFlags;
     }
 
-    static class FileDataHash
+    public static class FileDataHash
     {
         public static ulong ComputeHash(int fileDataId)
         {
@@ -105,6 +105,7 @@ namespace CASCLib
         public override int CountTotal => RootData.Sum(re => re.Value.Count);
         public override int CountUnknown => UnknownFiles.Count;
         public IReadOnlyDictionary<int, List<RootEntry>> RootEntries => RootData;
+        public IReadOnlyDictionary<int, ulong> FileDataToLookup => FileDataStore;
 
         public WowRootHandler(BinaryReader stream, BackgroundWorkerEx worker)
         {
