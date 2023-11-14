@@ -72,7 +72,7 @@ namespace CASCLib
                         }
                         else
                         {
-                            Logger.WriteLine($"ERROR: got miltiple hashes for filedataid {fileDataId}: {hash:X16} {hash2:X16}");
+                            Logger.WriteLine($"ERROR: got multiple hashes for filedataid {fileDataId}: {hash:X16} {hash2:X16}");
                         }
                         continue;
                     }

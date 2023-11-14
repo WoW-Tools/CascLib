@@ -246,7 +246,7 @@ namespace CASCLib
                         }
                         else
                         {
-                            Logger.WriteLine("ERROR: got miltiple hashes for filedataid {0}", fileDataId);
+                            Logger.WriteLine("ERROR: got multiple hashes for filedataid {0}", fileDataId);
                         }
                         continue;
                     }
