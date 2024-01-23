@@ -484,7 +484,10 @@ namespace CASCLib
         CollectiblePower = 151,
         AppearanceSet = 152,
         Preset = 153,
-        MAX_SNO_GROUPS = 154,
+        PreviewComposition = 154,
+        SpawnPool = 155,
+        Unknown0 = 156,          // .rdx extension
+        MAX_SNO_GROUPS = 157,
     }
 
     public class CoreTOCParserD4
@@ -663,6 +666,9 @@ namespace CASCLib
             [(SNOGroupD4)151] = ".cpw",
             [(SNOGroupD4)152] = ".aps",
             [(SNOGroupD4)153] = ".pst",
+            [(SNOGroupD4)154] = ".pvc",
+            [(SNOGroupD4)155] = ".spn",
+            [(SNOGroupD4)156] = ".rdx",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
