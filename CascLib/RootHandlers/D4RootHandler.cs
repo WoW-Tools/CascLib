@@ -484,12 +484,15 @@ namespace CASCLib
         CollectiblePower = 151,
         AppearanceSet = 152,
         Preset = 153,
-        MAX_SNO_GROUPS = 154,
+        PreviewComposition = 154,
+        SpawnPool = 155,
+        Unknown_156 = 156, // .rdx
+        MAX_SNO_GROUPS = 157,
     }
 
     public class CoreTOCParserD4
     {
-        private const int MAX_SNO_GROUPS = 141;
+        private const int MAX_SNO_GROUPS = 157;
 
         public unsafe struct TOCHeader
         {
@@ -663,6 +666,9 @@ namespace CASCLib
             [(SNOGroupD4)151] = ".cpw",
             [(SNOGroupD4)152] = ".aps",
             [(SNOGroupD4)153] = ".pst",
+            [(SNOGroupD4)154] = ".pvc",
+            [(SNOGroupD4)155] = ".spn",
+            [(SNOGroupD4)156] = ".rdx",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
