@@ -26,7 +26,11 @@ namespace CASCLib
         Zeus,
         Rtro,
         Anbs,
-        D4
+        D4,
+        DRTL,
+        DRTL2,
+        WC1,
+        WC2
     }
 
     public class CASCGame
@@ -79,6 +83,10 @@ namespace CASCLib
                 _ when uid.StartsWith("rtro") => CASCGameType.Rtro,
                 _ when uid.StartsWith("anbs") => CASCGameType.Anbs,
                 _ when uid.StartsWith("fenris") => CASCGameType.D4,
+                _ when uid.StartsWith("drtl2") => CASCGameType.DRTL2,
+                _ when uid.StartsWith("drtl") => CASCGameType.DRTL,
+                _ when uid.StartsWith("war1") => CASCGameType.WC1,
+                _ when uid.StartsWith("w2bn") => CASCGameType.WC2,
                 _ => throw new Exception("Unable to detect game type by uid")
             };
         }

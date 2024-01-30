@@ -83,6 +83,10 @@ namespace CASCLib
                             CASCGameType.Wlby => new DummyRootHandler(fs, worker),
                             CASCGameType.Rtro => new DummyRootHandler(fs, worker),
                             CASCGameType.Anbs => new DummyRootHandler(fs, worker),
+                            CASCGameType.WC1 => new DummyRootHandler(fs, worker),
+                            CASCGameType.WC2 => new DummyRootHandler(fs, worker),
+                            CASCGameType.DRTL => new DummyRootHandler(fs, worker),
+                            CASCGameType.DRTL2 => new DummyRootHandler(fs, worker),
                             _ => UnknownRootHandler()
                         };
                     }
