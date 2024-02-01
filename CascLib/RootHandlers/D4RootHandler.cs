@@ -487,12 +487,13 @@ namespace CASCLib
         PreviewComposition = 154,
         SpawnPool = 155,
         Unknown_156 = 156, // .rdx
-        MAX_SNO_GROUPS = 157,
+        Unknown_157 = 157, // .snt
+        MAX_SNO_GROUPS = 158,
     }
 
     public class CoreTOCParserD4
     {
-        private const int MAX_SNO_GROUPS = 157;
+        private const int MAX_SNO_GROUPS = 158;
 
         public unsafe struct TOCHeader
         {
@@ -669,6 +670,7 @@ namespace CASCLib
             [(SNOGroupD4)154] = ".pvc",
             [(SNOGroupD4)155] = ".spn",
             [(SNOGroupD4)156] = ".rdx",
+            [(SNOGroupD4)157] = ".snt",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
