@@ -188,7 +188,8 @@ namespace CASCLib
             }
             catch
             {
-                ExtractFileOnline(tempEKey, path, name);
+                if (Config.OnlineMode || CASCConfig.UseOnlineFallbackForMissingFiles)
+                    ExtractFileOnline(tempEKey, path, name);
             }
         }
 
