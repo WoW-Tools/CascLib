@@ -38,7 +38,7 @@ namespace CASCLib
 
             Logger.WriteLine("CASCHandlerLite: loaded {0} root data", RootHandler.Count);
 
-            RootHandler.SetFlags(locale, false, false);
+            RootHandler.SetFlags(locale, false, false, false);
 
             RootEntry rootEntry;
 

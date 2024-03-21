@@ -131,6 +131,8 @@ namespace CASCLib
 
                 if (OverrideArchive)
                     rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                else if (PreferHighResTextures)
+                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
                 else
                     rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
 
@@ -171,6 +173,8 @@ namespace CASCLib
 
                 if (OverrideArchive)
                     rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                else if (PreferHighResTextures)
+                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
                 else
                     rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
 
@@ -273,6 +277,8 @@ namespace CASCLib
 
                     if (OverrideArchive)
                         rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                    else if (PreferHighResTextures)
+                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
                     else
                         rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
 

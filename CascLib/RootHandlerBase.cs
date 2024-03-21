@@ -14,6 +14,7 @@ namespace CASCLib
         public virtual int CountUnknown { get; protected set; }
         public virtual LocaleFlags Locale { get; protected set; }
         public bool OverrideArchive { get; protected set; }
+        public bool PreferHighResTextures { get; protected set; }
 
         public abstract IEnumerable<KeyValuePair<ulong, RootEntry>> GetAllEntries();
 
@@ -100,12 +101,13 @@ namespace CASCLib
             }
         }
 
-        public CASCFolder SetFlags(LocaleFlags locale, bool overrideArchive = false, bool createTree = true)
+        public CASCFolder SetFlags(LocaleFlags locale, bool overrideArchive = false, bool preferHighResTextures = false, bool createTree = true)
         {
             using (var _ = new PerfCounter(GetType().Name + "::SetFlags()"))
             {
                 Locale = locale;
                 OverrideArchive = overrideArchive;
+                PreferHighResTextures = preferHighResTextures;
 
                 if (createTree)
                     Root = CreateStorageTree();
