@@ -97,12 +97,15 @@ namespace CASCLib
 
         public static unsafe T[] CopyTo<T>(this byte[] src) where T : unmanaged
         {
-            T[] result = new T[src.Length / Unsafe.SizeOf<T>()];
+            //T[] result = new T[src.Length / Unsafe.SizeOf<T>()];
 
-            if (src.Length > 0)
-                Unsafe.CopyBlockUnaligned(Unsafe.AsPointer(ref result[0]), Unsafe.AsPointer(ref src[0]), (uint)src.Length);
+            //if (src.Length > 0)
+            //    Unsafe.CopyBlockUnaligned(Unsafe.AsPointer(ref result[0]), Unsafe.AsPointer(ref src[0]), (uint)src.Length);
 
-            return result;
+            //return result;
+
+            Span<T> result = MemoryMarshal.Cast<byte, T>(src);
+            return result.ToArray();
         }
 
         public static short ReadInt16BE(this BinaryReader reader)
@@ -237,9 +240,13 @@ namespace CASCLib
 
         public static unsafe string ToHexString(this in MD5Hash key)
         {
-#if NET6_0_OR_GREATER
+#if NET6_0
             ref MD5Hash md5ref = ref Unsafe.AsRef(in key);
             var md5Span = MemoryMarshal.CreateReadOnlySpan(ref md5ref, 1);
+            var span = MemoryMarshal.AsBytes(md5Span);
+            return Convert.ToHexString(span);
+#elif NET7_0_OR_GREATER
+            var md5Span = new ReadOnlySpan<MD5Hash>(in key);
             var span = MemoryMarshal.AsBytes(md5Span);
             return Convert.ToHexString(span);
 #else

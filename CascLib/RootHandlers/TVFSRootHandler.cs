@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace CASCLib
@@ -34,7 +35,7 @@ namespace CASCLib
         //public ReadOnlySpan<byte> EstTable;
     }
 
-    ref struct PathBuffer
+    public ref struct PathBuffer
     {
         public Span<byte> Data;
         public int Position;
@@ -57,7 +58,12 @@ namespace CASCLib
 
         public unsafe string GetString()
         {
-            return new string((sbyte*)Unsafe.AsPointer(ref Data[0]), 0, Position, Encoding.ASCII);
+#if NETSTANDARD2_0
+            fixed (byte* ptr = Data)
+                return Encoding.ASCII.GetString(ptr, Position);
+#else
+            return Encoding.ASCII.GetString(Data.Slice(0, Position));
+#endif
         }
     }
 
