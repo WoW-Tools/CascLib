@@ -210,7 +210,7 @@ namespace CASCLib
                     }
                     catch
                     {
-
+                        Console.WriteLine("Failed to load build {0}", config._CDNConfig["builds"][i]);
                     }
                 }
 
