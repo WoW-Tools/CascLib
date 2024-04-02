@@ -487,13 +487,15 @@ namespace CASCLib
         PreviewComposition = 154,
         SpawnPool = 155,
         Unknown_156 = 156, // .rdx
-        Unknown_157 = 157, // .snt
-        MAX_SNO_GROUPS = 158,
+        BattlePassTier = 157, // .bpt
+        Unknown_158 = 158, // .zon
+        Unknown_159 = 159, // .ggu
+        MAX_SNO_GROUPS = 160,
     }
 
     public class CoreTOCParserD4
     {
-        private const int MAX_SNO_GROUPS = 158;
+        private const int MAX_SNO_GROUPS = 160;
 
         public unsafe struct TOCHeader
         {
@@ -670,7 +672,9 @@ namespace CASCLib
             [(SNOGroupD4)154] = ".pvc",
             [(SNOGroupD4)155] = ".spn",
             [(SNOGroupD4)156] = ".rdx",
-            [(SNOGroupD4)157] = ".snt",
+            [(SNOGroupD4)157] = ".bpt",
+            [(SNOGroupD4)158] = ".zon",
+            [(SNOGroupD4)159] = ".ggu",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
