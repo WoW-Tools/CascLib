@@ -87,6 +87,7 @@ namespace CASCLib
                             CASCGameType.WC2 => new DummyRootHandler(fs, worker),
                             CASCGameType.DRTL => new DummyRootHandler(fs, worker),
                             CASCGameType.DRTL2 => new DummyRootHandler(fs, worker),
+                            CASCGameType.Gryphon => new DummyRootHandler(fs, worker),
                             _ => UnknownRootHandler()
                         };
                     }
@@ -111,23 +112,23 @@ namespace CASCLib
             }
         }
 
-        public static CASCHandler OpenStorage(CASCConfig config, BackgroundWorkerEx worker = null) => Open(worker, config);
+        public static CASCHandler OpenStorage(CASCConfig config, BackgroundWorkerEx worker = null) => Open(config, worker);
 
         public static CASCHandler OpenLocalStorage(string basePath, string product = null, BackgroundWorkerEx worker = null)
         {
             CASCConfig config = CASCConfig.LoadLocalStorageConfig(basePath, product);
 
-            return Open(worker, config);
+            return Open(config, worker);
         }
 
         public static CASCHandler OpenOnlineStorage(string product, string region = "us", BackgroundWorkerEx worker = null)
         {
             CASCConfig config = CASCConfig.LoadOnlineStorageConfig(product, region);
 
-            return Open(worker, config);
+            return Open(config, worker);
         }
 
-        private static CASCHandler Open(BackgroundWorkerEx worker, CASCConfig config)
+        private static CASCHandler Open(CASCConfig config, BackgroundWorkerEx worker)
         {
             using (var _ = new PerfCounter("new CASCHandler()"))
             {
@@ -180,14 +181,15 @@ namespace CASCLib
 
             if ((CASCConfig.LoadFlags & LoadFlags.Install) != 0)
             {
-                var installInfos = Install.GetEntries().Where(e => Hasher.ComputeHash(e.Name) == hash && e.Tags.Any(t => t.Type == 1 && t.Name == RootHandler.Locale.ToString()));
+                var localeString = RootHandler.Locale.ToString();
+                var installInfos = Install.GetEntries().Where(e => e.Hash == hash && e.Tags.Any(t => t.Type == 1 && t.Name == localeString));
                 if (installInfos.Any())
                 {
                     cKey = installInfos.First().MD5;
                     return true;
                 }
 
-                installInfos = Install.GetEntries().Where(e => Hasher.ComputeHash(e.Name) == hash);
+                installInfos = Install.GetEntries().Where(e => e.Hash == hash);
                 if (installInfos.Any())
                 {
                     cKey = installInfos.First().MD5;

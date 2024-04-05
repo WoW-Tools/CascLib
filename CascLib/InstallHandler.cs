@@ -8,6 +8,7 @@ namespace CASCLib
     public class InstallEntry
     {
         public string Name;
+        public ulong Hash;
         public MD5Hash MD5;
         public int Size;
 
@@ -62,9 +63,11 @@ namespace CASCLib
 
             for (int i = 0; i < numFiles; i++)
             {
+                string name = stream.ReadCString();
                 InstallEntry entry = new InstallEntry()
                 {
-                    Name = stream.ReadCString(),
+                    Name = name,
+                    Hash = Hasher.ComputeHash(name),
                     MD5 = stream.Read<MD5Hash>(),
                     Size = stream.ReadInt32BE()
                 };
@@ -79,6 +82,11 @@ namespace CASCLib
         public InstallEntry GetEntry(string name)
         {
             return InstallData.Where(i => i.Name.ToLower() == name.ToLower()).FirstOrDefault();
+        }
+
+        public InstallEntry GetEntry(ulong hash)
+        {
+            return InstallData.Where(i => i.Hash == hash).FirstOrDefault();
         }
 
         public IEnumerable<InstallEntry> GetEntriesByName(string name)
@@ -96,7 +104,7 @@ namespace CASCLib
         public IEnumerable<InstallEntry> GetEntries(ulong hash)
         {
             foreach (var entry in InstallData)
-                if (Hasher.ComputeHash(entry.Name) == hash)
+                if (entry.Hash == hash)
                     yield return entry;
         }
 
@@ -112,9 +120,9 @@ namespace CASCLib
             {
                 var data = InstallData[i];
 
-                Logger.WriteLine("{0:D4}: {1} {2}", i, data.MD5.ToHexString(), data.Name);
+                Logger.WriteLine($"{i:D4}: {data.Hash:X16} {data.MD5.ToHexString()} {data.Name}");
 
-                Logger.WriteLine("    {0}", string.Join(",", data.Tags.Select(t => t.Name)));
+                Logger.WriteLine($"    {string.Join(",", data.Tags.Select(t => t.Name))}");
             }
         }
 

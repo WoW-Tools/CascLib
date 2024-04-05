@@ -30,7 +30,8 @@ namespace CASCLib
         DRTL,
         DRTL2,
         WC1,
-        WC2
+        WC2,
+        Gryphon
     }
 
     public class CASCGame
@@ -87,6 +88,7 @@ namespace CASCLib
                 _ when uid.StartsWith("drtl") => CASCGameType.DRTL,
                 _ when uid.StartsWith("war1") => CASCGameType.WC1,
                 _ when uid.StartsWith("w2bn") => CASCGameType.WC2,
+                _ when uid.StartsWith("gryphon") => CASCGameType.Gryphon,
                 _ => throw new Exception("Unable to detect game type by uid")
             };
         }
