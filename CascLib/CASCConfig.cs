@@ -481,6 +481,9 @@ namespace CASCLib
 
         private static string GetConfigVariable(VerBarConfig config, string filterParamName, string filterParamValue, string varName)
         {
+            if (config == null)
+                return null;
+
             if (config.Count == 1 || !HasConfigVariable(config, filterParamName))
             {
                 if (config[0].TryGetValue(varName, out string varValue))
