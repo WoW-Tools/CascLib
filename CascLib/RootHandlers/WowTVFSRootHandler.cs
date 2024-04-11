@@ -127,17 +127,17 @@ namespace CASCLib
 
             if (rootInfosLocale.Count() > 1)
             {
-                IEnumerable<RootEntry> rootInfosLocaleOverride;
+                IEnumerable<RootEntry> rootInfosLocaleOverride = rootInfosLocale;
 
                 if (OverrideArchive)
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
                 else
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
+                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
 
                 if (PreferHighResTextures)
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
+                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
                 else
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) == ContentFlags.None);
+                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) == ContentFlags.None);
 
                 if (rootInfosLocaleOverride.Any())
                     rootInfosLocale = rootInfosLocaleOverride;
@@ -172,17 +172,17 @@ namespace CASCLib
 
             if (rootInfosLocale.Count() > 1)
             {
-                IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride;
+                IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride = rootInfosLocale;
 
                 if (OverrideArchive)
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
                 else
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
+                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
 
                 if (PreferHighResTextures)
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
+                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
                 else
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) == ContentFlags.None);
+                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) == ContentFlags.None);
 
                 if (rootInfosLocaleOverride.Any())
                     rootInfosLocale = rootInfosLocaleOverride;
@@ -279,17 +279,17 @@ namespace CASCLib
 
                 if (rootInfosLocale.Count() > 1)
                 {
-                    IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride;
+                    IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride = rootInfosLocale;
 
                     if (OverrideArchive)
-                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                        rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
                     else
-                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
+                        rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
 
                     if (PreferHighResTextures)
-                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
+                        rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
                     else
-                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) == ContentFlags.None);
+                        rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) == ContentFlags.None);
 
                     if (rootInfosLocaleOverride.Any())
                         rootInfosLocale = rootInfosLocaleOverride;
