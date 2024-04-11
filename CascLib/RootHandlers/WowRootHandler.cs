@@ -94,6 +94,24 @@ namespace CASCLib
         }
     }
 
+    public class ContentFlagsFilter
+    {
+        protected static bool Check(ContentFlags value, ContentFlags flag, bool include) => include ? (value & flag) != ContentFlags.None : (value & flag) == ContentFlags.None;
+
+        public static IEnumerable<RootEntry> Filter(IEnumerable<RootEntry> entries, bool alternate, bool highResTexture)
+        {
+            IEnumerable<RootEntry> temp = entries;
+
+            if (temp.Any(e => (e.ContentFlags & ContentFlags.Alternate) != ContentFlags.None))
+                temp = temp.Where(e => Check(e.ContentFlags, ContentFlags.Alternate, alternate));
+
+            if (temp.Any(e => (e.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None))
+                temp = temp.Where(e => Check(e.ContentFlags, ContentFlags.HighResTexture, highResTexture));
+
+            return temp;
+        }
+    }
+
     public class WowRootHandler : RootHandlerBase
     {
         private MultiDictionary<int, RootEntry> RootData = new MultiDictionary<int, RootEntry>();
@@ -310,17 +328,7 @@ namespace CASCLib
 
             if (rootInfosLocale.Count() > 1)
             {
-                IEnumerable<RootEntry> rootInfosLocaleOverride = rootInfosLocale;
-
-                if (OverrideArchive)
-                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
-                else
-                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
-
-                if (PreferHighResTextures)
-                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
-                else
-                    rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) == ContentFlags.None);
+                IEnumerable<RootEntry> rootInfosLocaleOverride = ContentFlagsFilter.Filter(rootInfosLocale, OverrideArchive, PreferHighResTextures);
 
                 if (rootInfosLocaleOverride.Any())
                     rootInfosLocale = rootInfosLocaleOverride;
@@ -426,17 +434,7 @@ namespace CASCLib
 
                 if (rootInfosLocale.Count() > 1)
                 {
-                    IEnumerable<RootEntry> rootInfosLocaleOverride = rootInfosLocale;
-
-                    if (OverrideArchive)
-                        rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
-                    else
-                        rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
-
-                    if (PreferHighResTextures)
-                        rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None);
-                    else
-                        rootInfosLocaleOverride = rootInfosLocaleOverride.Where(re => (re.ContentFlags & ContentFlags.HighResTexture) == ContentFlags.None);
+                    IEnumerable<RootEntry> rootInfosLocaleOverride = ContentFlagsFilter.Filter(rootInfosLocale, OverrideArchive, PreferHighResTextures);
 
                     if (rootInfosLocaleOverride.Any())
                         rootInfosLocale = rootInfosLocaleOverride;
