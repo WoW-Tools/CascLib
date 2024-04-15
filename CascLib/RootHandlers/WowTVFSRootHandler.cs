@@ -22,10 +22,10 @@ namespace CASCLib
         {
             IEnumerable<WowVfsRootEntry> temp = entries;
 
-            if (temp.Any(e => (e.ContentFlags & ContentFlags.Alternate) != ContentFlags.None))
+            if (temp.Any(e => Check(e.ContentFlags, ContentFlags.Alternate, true)))
                 temp = temp.Where(e => Check(e.ContentFlags, ContentFlags.Alternate, alternate));
 
-            if (temp.Any(e => (e.ContentFlags & ContentFlags.HighResTexture) != ContentFlags.None))
+            if (temp.Any(e => Check(e.ContentFlags, ContentFlags.HighResTexture, true)))
                 temp = temp.Where(e => Check(e.ContentFlags, ContentFlags.HighResTexture, highResTexture));
 
             return temp;

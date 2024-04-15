@@ -199,7 +199,10 @@ namespace CASCLib
 
             string file = Utils.MakeCDNPath(_config.CDNPath, "data", fileName);
 
-            File.Delete(Path.Combine(CachePath, file));
+            string filePath = Path.Combine(CachePath, file);
+
+            if (File.Exists(filePath))
+                File.Delete(filePath);
 
             using (var sw = File.AppendText(Path.Combine(CachePath, "cache.meta")))
             {
