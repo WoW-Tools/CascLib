@@ -487,15 +487,24 @@ namespace CASCLib
         PreviewComposition = 154,
         SpawnPool = 155,
         Unknown_156 = 156, // .rdx
-        BattlePassTier = 157, // .bpt
-        Unknown_158 = 158, // .zon
+        BattlePassTier = 157,
+        Zone = 158,
         Unknown_159 = 159, // .ggu
-        MAX_SNO_GROUPS = 160,
+        Unknown_160 = 160, // .dtk
+        Snippet = 161,
+        CommunityModifier = 162,
+        GenericNodeGraph = 163,
+        UserDefinedData = 164,
+        Unknown_165 = 165, // .fds
+        Unknown_166 = 166, // .bvr
+        Unknown_167 = 167, // .asv
+        Unknown_168 = 168, // .dmg
+        MAX_SNO_GROUPS = 169,
     }
 
     public class CoreTOCParserD4
     {
-        private const int MAX_SNO_GROUPS = 160;
+        private const int MAX_SNO_GROUPS = 169;
 
         public unsafe struct TOCHeader
         {
@@ -675,6 +684,15 @@ namespace CASCLib
             [(SNOGroupD4)157] = ".bpt",
             [(SNOGroupD4)158] = ".zon",
             [(SNOGroupD4)159] = ".ggu",
+            [(SNOGroupD4)160] = ".dtk",
+            [(SNOGroupD4)161] = ".snp",
+            [(SNOGroupD4)162] = ".cmo",
+            [(SNOGroupD4)163] = ".gng",
+            [(SNOGroupD4)164] = ".udd",
+            [(SNOGroupD4)165] = ".fds",
+            [(SNOGroupD4)166] = ".bvr",
+            [(SNOGroupD4)167] = ".asv",
+            [(SNOGroupD4)168] = ".dmg",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
