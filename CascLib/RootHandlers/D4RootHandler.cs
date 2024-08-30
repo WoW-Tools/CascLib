@@ -699,7 +699,19 @@ namespace CASCLib
         {
             using (var br = new BinaryReader(stream))
             {
-                int numSnoGroups = br.ReadInt32();
+                uint magic = br.ReadUInt32();
+
+                int numSnoGroups;
+
+                if (magic == 0xBCDE6611)
+                {
+                    numSnoGroups = br.ReadInt32();
+                }
+                else
+                {
+                    br.BaseStream.Position = 0;
+                    numSnoGroups = br.ReadInt32();
+                }
 
                 //if (numSnoGroups != NUM_SNO_GROUPS)
                 //    return;
@@ -725,9 +737,28 @@ namespace CASCLib
                     entryUnkCounts[i] = br.ReadInt32();
                 }
 
+                if (magic == 0xBCDE6611)
+                {
+                    int[] entryUnk2 = new int[numSnoGroups];
+
+                    for (int i = 0; i < entryUnk2.Length; i++)
+                    {
+                        entryUnk2[i] = br.ReadInt32();
+                    }
+                }
+
                 int unk1 = br.ReadInt32();
 
-                int headerSize = 4 + numSnoGroups * (4 + 4 + 4) + 4;
+                int headerSize;
+
+                if (magic == 0xBCDE6611)
+                {
+                    headerSize = 4 + 4 + numSnoGroups * (4 + 4 + 4 + 4) + 4;
+                }
+                else
+                {
+                    headerSize = 4 + numSnoGroups * (4 + 4 + 4) + 4;
+                }
 
                 for (int i = 0; i < numSnoGroups; i++)
                 {
