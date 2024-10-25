@@ -302,6 +302,7 @@ namespace CASCLib
             //[0x80FF7EDA8451FFFE] = "????????????????????????????????".FromHexString(), // TactKeyId 446
             [0x2F454B153E142B76] = "1966430485B785B17234495E85BCA78F".FromHexString(), // TactKeyId 469
             [0xB5F633819B0DE383] = "B1F01BEF8AC2208DE7051D38AB36C85C".FromHexString(), // TactKeyId 470
+            [0x1FFB6C550D055F12] = "620F0397FD3B8E00FEDDEEEA7C255936".FromHexString(), // TactKeyId 471
             //[0x258D1178AB798566] = "????????????????????????????????".FromHexString(), // TactKeyId 473
             //[0x1E6AC96860BD524B] = "????????????????????????????????".FromHexString(), // TactKeyId 474
             [0x6F5EBDF150B3441D] = "3866C0AC925023EA1145E20C021EED41".FromHexString(), // TactKeyId 475
@@ -525,6 +526,7 @@ namespace CASCLib
             [0x3A3800F1468350B8] = "5FCC8413D15567F3AE9A204443B36294".FromHexString(), // TactKeyId 7848
             [0x26C603F611AC329B] = "D2D87DC816D35FA0F1492FAC6C45C4A9".FromHexString(), // TactKeyId 7849
             [0x482D9FFF2F6617AF] = "62417992500BA65775C2BB0C820DF6CD".FromHexString(), // TactKeyId 7851
+            [0x23664012A7F9892A] = "A0EE6E971B53FD4792555FB0056632B4".FromHexString(), // TactKeyId 7852
             [0xBEDD8CF39C737CF7] = "9C074DB0E5FDCCFB06F1185DCC028CB1".FromHexString(), // TactKeyId 7853
             [0x7D072A3876C93017] = "D6D8146E6E5A716B88683956186FDF27".FromHexString(), // TactKeyId 7863
             [0x489B3CB76CD030B8] = "6B0CE0543E65D87FEB2358BDF7BD4079".FromHexString(), // TactKeyId 7870
@@ -532,7 +534,9 @@ namespace CASCLib
             [0x9E868894A3B77D26] = "BEBB138D3FB431CF14044E47E56CB6B2".FromHexString(), // TactKeyId 7877
             [0x4B31F0848F358D7B] = "2EF8549928E63768208ACC79520D30D0".FromHexString(), // TactKeyId 7879
             [0x54D90855E99CA6FA] = "54B6D04D6B7064AB5F0A10312E68A889".FromHexString(), // TactKeyId 7882
+            [0x905FD359D27A46FB] = "5D0D1408895FC1A1C581251B71B2E26F".FromHexString(), // TactKeyId 7883
             [0x1C95D8623041EF30] = "75A7B2606224246050BDE7045E83D81A".FromHexString(), // TactKeyId 7907
+            [0x6955C096B4171FDF] = "9AD9DE271CAA54272D0CAA2A4A6A5786".FromHexString(), // TactKeyId 7909
             // BNA 1.5.0 Alpha
             [0x2C547F26A2613E01] = "37C50C102D4C9E3A5AC069F072B1417D".FromHexString(),
             // Warcraft III: Reforged
