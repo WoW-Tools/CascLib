@@ -32,6 +32,7 @@ namespace CASCLib
         jaJP = 0x04000000, // custom
         trTR = 0x08000000, // custom
         arSA = 0x10000000, // custom
+        zhHM = 0x10000000, // custom
         All_WoW = enUS | koKR | frFR | deDE | zhCN | esES | zhTW | enGB | esMX | ruRU | ptBR | itIT | ptPT
     }
 

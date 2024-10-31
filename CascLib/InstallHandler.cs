@@ -13,6 +13,17 @@ namespace CASCLib
         public int Size;
 
         public List<InstallTag> Tags;
+
+        public bool HasTag(string tag) => Tags.Any(t => t.Name == tag);
+        public bool HasAllTags(params string[] tags)
+        {
+            foreach (var tag in tags)
+            {
+                if (!HasTag(tag))
+                    return false;
+            }
+            return true;
+        }
     }
 
     public class InstallTag
@@ -114,6 +125,15 @@ namespace CASCLib
                 yield return entry;
         }
 
+        public IEnumerable<InstallEntry> GetEntries(params string[] tags)
+        {
+            foreach (var entry in InstallData)
+            {
+                if (entry.HasAllTags(tags))
+                    yield return entry;
+            }
+        }
+
         public void Print()
         {
             for (int i = 0; i < InstallData.Count; ++i)
@@ -122,7 +142,8 @@ namespace CASCLib
 
                 Logger.WriteLine($"{i:D4}: {data.Hash:X16} {data.MD5.ToHexString()} {data.Name}");
 
-                Logger.WriteLine($"    {string.Join(",", data.Tags.Select(t => t.Name))}");
+                Logger.WriteLine($"    Tags: {string.Join(",", data.Tags.Select(t => t.Name))}");
+                Logger.WriteLine($"    Tag types: {string.Join(",", data.Tags.Select(t => t.Type))}");
             }
         }
 
