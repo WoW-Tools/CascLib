@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
     <Copyright>Copyright © TOM_RUS 2014-2022</Copyright>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MimeKitLite" Version="4.6.0" />
+    <PackageReference Include="MimeKitLite" Version="4.8.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 
