@@ -254,11 +254,9 @@ namespace CASCLib
                 }
 
                 byte[] key = KeyService.GetKey(keyName);
-                bool hasKey = key != null;
 
                 if (key == null)
                 {
-                    key = new byte[16];
                     if (CASCConfig.ThrowOnMissingDecryptionKey && index == 0)
                         throw new BLTEDecoderException(3, $"unknown keyname {keyName:X16}");
                     //return null;
@@ -266,11 +264,18 @@ namespace CASCLib
 
                 if (encType == ENCRYPTION_SALSA20)
                 {
-                    using (ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(key, IV))
-                    using (CryptoStream cs = new CryptoStream(data, decryptor, CryptoStreamMode.Read))
+                    if (key != null)
                     {
-                        MemoryStream ms = cs.CopyToMemoryStream();
-                        return hasKey ? ms : null;
+                        using (ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(key, IV))
+                        using (CryptoStream cs = new CryptoStream(data, decryptor, CryptoStreamMode.Read))
+                        {
+                            MemoryStream ms = cs.CopyToMemoryStream();
+                            return ms;
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
                 else
