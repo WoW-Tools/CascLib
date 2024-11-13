@@ -117,6 +117,15 @@ namespace CASCLib
                     yield return entry;
         }
 
+        public IEnumerable<InstallEntry> GetEntriesByTags(params string[] tags)
+        {
+            foreach (var entry in InstallData)
+            {
+                if (entry.HasAllTags(tags))
+                    yield return entry;
+            }
+        }
+
         public IEnumerable<InstallEntry> GetEntries(ulong hash)
         {
             foreach (var entry in InstallData)
@@ -128,15 +137,6 @@ namespace CASCLib
         {
             foreach (var entry in InstallData)
                 yield return entry;
-        }
-
-        public IEnumerable<InstallEntry> GetEntries(params string[] tags)
-        {
-            foreach (var entry in InstallData)
-            {
-                if (entry.HasAllTags(tags))
-                    yield return entry;
-            }
         }
 
         public void Print()
