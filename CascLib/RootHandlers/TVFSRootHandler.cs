@@ -220,7 +220,7 @@ namespace CASCLib
             SpanCount = pbVfsFileEntry[0];
             pbVfsFileEntry = pbVfsFileEntry.Slice(1);
 
-            return (1 <= SpanCount && SpanCount <= 224) ? pbVfsFileEntry : default;
+            return (1 <= SpanCount && SpanCount <= 224) ? pbVfsFileEntry : ReadOnlySpan<byte>.Empty;
         }
 
         private int CaptureVfsSpanEntry(ref TVFS_DIRECTORY_HEADER dirHeader, scoped ReadOnlySpan<byte> vfsSpanEntry, ref VfsRootEntry vfsRootEntry)
@@ -337,7 +337,7 @@ namespace CASCLib
             {
                 pathTable = CapturePathEntry(pathTable, out var pathEntry);
 
-                if (pathTable == default)
+                if (pathTable.IsEmpty)
                     throw new InvalidDataException();
 
                 PathBuffer_AppendNode(ref pathBuffer, pathEntry);
@@ -359,7 +359,7 @@ namespace CASCLib
                         byte dwSpanCount = 0;
 
                         ReadOnlySpan<byte> vfsSpanEntry = CaptureVfsSpanCount(ref dirHeader, pathEntry.NodeValue, ref dwSpanCount);
-                        if (vfsSpanEntry == default)
+                        if (vfsSpanEntry.IsEmpty)
                             throw new InvalidDataException();
 
                         if (dwSpanCount == 1)
@@ -369,7 +369,7 @@ namespace CASCLib
                             int itemSize = CaptureVfsSpanEntry(ref dirHeader, vfsSpanEntry, ref vfsRootEntry);
                             vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
 
-                            if (vfsSpanEntry == default)
+                            if (vfsSpanEntry.IsEmpty)
                                 throw new InvalidDataException();
 
                             //Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} 0");
@@ -417,7 +417,7 @@ namespace CASCLib
                                 int itemSize = CaptureVfsSpanEntry(ref dirHeader, vfsSpanEntry, ref vfsRootEntry);
                                 vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
 
-                                if (vfsSpanEntry == default)
+                                if (vfsSpanEntry.IsEmpty)
                                     throw new InvalidDataException();
 
                                 //Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} {dwSpanIndex}");

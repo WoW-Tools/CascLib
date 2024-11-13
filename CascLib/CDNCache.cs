@@ -151,17 +151,17 @@ namespace CASCLib
                     throw new InvalidDataException($"unable to validate file {file}");
 
                 bool sizeOk = fi.Length == meta.Size;
-                bool dateOk = ValidateFast || fi.CreationTime == meta.LastModified;
+                bool dateOk = fi.CreationTime == meta.LastModified;
 
                 if (sizeOk && dateOk)
                 {
-                    Logger.WriteLine($"CDNCache: {file} validated, sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
+                    Logger.WriteLine($"CDNCache: {file} validated: sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
 
                     return true;
                 }
                 else
                 {
-                    Logger.WriteLine($"CDNCache: {file} not validated, sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
+                    Logger.WriteLine($"CDNCache: {file} not validated: sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
 
                     _metaData.Remove(fileName);
                     fi.Delete();

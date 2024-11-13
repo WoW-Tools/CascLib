@@ -31,6 +31,11 @@ namespace CASCLib
         public string Name;
         public short Type;
         public BitArray Bits;
+
+        public override string ToString()
+        {
+            return $"{Name} ({Type})";
+        }
     }
 
     public class InstallHandler
@@ -108,7 +113,7 @@ namespace CASCLib
         public IEnumerable<InstallEntry> GetEntriesByTag(string tag)
         {
             foreach (var entry in InstallData)
-                if (entry.Tags.Any(t => t.Name == tag))
+                if (entry.HasTag(tag))
                     yield return entry;
         }
 
