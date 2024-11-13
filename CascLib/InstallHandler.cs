@@ -146,9 +146,7 @@ namespace CASCLib
                 var data = InstallData[i];
 
                 Logger.WriteLine($"{i:D4}: {data.Hash:X16} {data.MD5.ToHexString()} {data.Name}");
-
-                Logger.WriteLine($"    Tags: {string.Join(",", data.Tags.Select(t => t.Name))}");
-                Logger.WriteLine($"    Tag types: {string.Join(",", data.Tags.Select(t => t.Type))}");
+                Logger.WriteLine($"    Tags: {string.Join(",", data.Tags)}");
             }
         }
 
