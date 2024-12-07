@@ -215,7 +215,7 @@ namespace CASCLib
             ReadOnlySpan<byte> pbVfsFileEntry = VfsFileTable.Slice(dwVfsOffset);
 
             if (pbVfsFileEntry.Length == 0)
-                return default;
+                return ReadOnlySpan<byte>.Empty;
 
             SpanCount = pbVfsFileEntry[0];
             pbVfsFileEntry = pbVfsFileEntry.Slice(1);
@@ -228,15 +228,22 @@ namespace CASCLib
             ReadOnlySpan<byte> cftFileTable = dirHeader.CftTable;
             int itemSize = sizeof(int) + sizeof(int) + dirHeader.CftOffsSize;
 
+            if (itemSize > vfsSpanEntry.Length)
+                return -1;
+
             int contentOffset = vfsSpanEntry.ReadInt32BE();
             int contentLength = vfsSpanEntry.Slice(4).ReadInt32BE();
             int cftOffset = vfsSpanEntry.Slice(4 + 4).ReadInt32(dirHeader.CftOffsSize);
 
-            vfsRootEntry.ContentOffset = contentOffset;
+            vfsRootEntry.ContentOffset = contentOffset; // not used outside of this function?
             vfsRootEntry.ContentLength = contentLength;
-            vfsRootEntry.CftOffset = cftOffset;
+            vfsRootEntry.CftOffset = cftOffset; // not used outside of this function
 
             ReadOnlySpan<byte> cftFileEntry = cftFileTable.Slice(cftOffset);
+
+            if (dirHeader.EKeySize > cftFileEntry.Length)
+                return -1;
+
             ReadOnlySpan<byte> eKeySlice = cftFileEntry.Slice(0, dirHeader.EKeySize);
             Span<byte> eKey = stackalloc byte[16];
             eKeySlice.CopyTo(eKey);
@@ -259,10 +266,12 @@ namespace CASCLib
             if (pathTable.Length > 0 && pathTable[0] != 0xFF)
             {
                 byte len = pathTable[0];
-                pathTable = pathTable.Slice(1);
 
-                pathEntry.Name = pathTable.Slice(0, len);
-                pathTable = pathTable.Slice(len);
+                if (len > pathTable.Length)
+                    return ReadOnlySpan<byte>.Empty;
+
+                pathEntry.Name = pathTable.Slice(1, len);
+                pathTable = pathTable.Slice(1 + len);
             }
 
             if (pathTable.Length > 0 && pathTable[0] == 0)
@@ -276,7 +285,7 @@ namespace CASCLib
                 if (pathTable[0] == 0xFF)
                 {
                     if (1 + sizeof(int) > pathTable.Length)
-                        return default;
+                        return ReadOnlySpan<byte>.Empty;
 
                     pathEntry.NodeValue = pathTable.Slice(1).ReadInt32BE();
                     pathEntry.NodeFlags |= TVFS_PTE_NODE_VALUE;
@@ -337,7 +346,7 @@ namespace CASCLib
             {
                 pathTable = CapturePathEntry(pathTable, out var pathEntry);
 
-                if (pathTable.IsEmpty)
+                if (pathTable.IsEmpty && pathEntry.NodeFlags == 0 && pathEntry.Name.IsEmpty)
                     throw new InvalidDataException();
 
                 PathBuffer_AppendNode(ref pathBuffer, pathEntry);
@@ -359,6 +368,7 @@ namespace CASCLib
                         byte dwSpanCount = 0;
 
                         ReadOnlySpan<byte> vfsSpanEntry = CaptureVfsSpanCount(ref dirHeader, pathEntry.NodeValue, ref dwSpanCount);
+
                         if (vfsSpanEntry.IsEmpty)
                             throw new InvalidDataException();
 
@@ -367,10 +377,11 @@ namespace CASCLib
                             VfsRootEntry vfsRootEntry = new VfsRootEntry();
 
                             int itemSize = CaptureVfsSpanEntry(ref dirHeader, vfsSpanEntry, ref vfsRootEntry);
-                            vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
 
-                            if (vfsSpanEntry.IsEmpty)
+                            if (itemSize == -1)
                                 throw new InvalidDataException();
+
+                            vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
 
                             //Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} 0");
 
@@ -415,10 +426,11 @@ namespace CASCLib
                                 VfsRootEntry vfsRootEntry = new VfsRootEntry();
 
                                 int itemSize = CaptureVfsSpanEntry(ref dirHeader, vfsSpanEntry, ref vfsRootEntry);
-                                vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
 
-                                if (vfsSpanEntry.IsEmpty)
+                                if (itemSize == -1)
                                     throw new InvalidDataException();
+
+                                vfsSpanEntry = vfsSpanEntry.Slice(itemSize);
 
                                 //Logger.WriteLine($"VFS: {vfsRootEntry.ContentOffset:X8} {vfsRootEntry.ContentLength:D9} {vfsRootEntry.CftOffset:X8} {vfsRootEntry.eKey.ToHexString()} {dwSpanIndex}");
 
