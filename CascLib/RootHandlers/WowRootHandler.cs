@@ -138,6 +138,7 @@ namespace CASCLib
 
             int headerSize;
             bool isLegacy;
+            int version = 0;
 
             if (magic == TSFMMagic)
             {
@@ -146,23 +147,14 @@ namespace CASCLib
                 if (stream.BaseStream.Length < 12)
                     throw new Exception("build manifest is truncated");
 
-                int field04 = stream.ReadInt32();
-                int field08 = stream.ReadInt32();
+                headerSize = stream.ReadInt32();
+                version = stream.ReadInt32();
 
-                int version = field08;
-                headerSize = field04;
+                if (version != 1 && version != 2)
+                    throw new Exception("build manifest is an unrecognized version");
 
-                if (version != 1)
-                {
-                    numFilesTotal = field04;
-                    numFilesWithNameHash = field08;
-                    headerSize = 12;
-                }
-                else
-                {
-                    numFilesTotal = stream.ReadInt32();
-                    numFilesWithNameHash = stream.ReadInt32();
-                }
+                numFilesTotal = stream.ReadInt32();
+                numFilesWithNameHash = stream.ReadInt32();
             }
             else
             {
@@ -181,12 +173,27 @@ namespace CASCLib
 
             while (stream.BaseStream.Position < stream.BaseStream.Length)
             {
-                int count = stream.ReadInt32();
+                int count = 0;
+                ContentFlags contentFlags = ContentFlags.None;
+                LocaleFlags localeFlags = LocaleFlags.None;
+
+                if (version == 1)
+                {
+                    count = stream.ReadInt32();
+                    contentFlags = (ContentFlags)stream.ReadUInt32();
+                    localeFlags = (LocaleFlags)stream.ReadUInt32();
+                }
+                else if (version == 2)
+                {
+                    count = stream.ReadInt32();
+                    localeFlags = (LocaleFlags)stream.ReadUInt32();
+                    uint unk0 = stream.ReadUInt32();
+                    uint unk1 = stream.ReadUInt32();
+                    byte unk2 = stream.ReadByte();
+                    contentFlags = (ContentFlags)(unk0 | unk1 | (uint)(unk2 << 17));
+                }
 
                 numFilesRead += count;
-
-                ContentFlags contentFlags = (ContentFlags)stream.ReadUInt32();
-                LocaleFlags localeFlags = (LocaleFlags)stream.ReadUInt32();
 
                 if (localeFlags == LocaleFlags.None)
                     throw new InvalidDataException("block.LocaleFlags == LocaleFlags.None");
