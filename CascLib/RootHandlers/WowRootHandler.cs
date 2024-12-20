@@ -138,8 +138,8 @@ namespace CASCLib
 
             const int MFSTMagic = 0x4D465354;
 
-            int headerSize;
             bool isNewManifest = magic == MFSTMagic;
+            int headerSize;
             int version = 0;
 
             if (isNewManifest)
@@ -184,7 +184,7 @@ namespace CASCLib
 
             stream.BaseStream.Position = headerSize;
 
-            int blockIndex = 0;
+            //int blockIndex = 0;
 
             while (stream.BaseStream.Position < stream.BaseStream.Length)
             {
@@ -306,7 +306,7 @@ namespace CASCLib
 
                 worker?.ReportProgress((int)(stream.BaseStream.Position / (float)stream.BaseStream.Length * 100));
 
-                blockIndex++;
+                //blockIndex++;
             }
         }
 
