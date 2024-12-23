@@ -150,21 +150,21 @@ namespace CASCLib
                 headerSize = stream.ReadInt32();
                 version = stream.ReadInt32();
 
-                if (headerSize == 0x18)
+                if (headerSize != 0x18)
+                {
+                    version = 0;
+                }
+                else
                 {
                     if (version != 1 && version != 2)
                         throw new Exception("build manifest is an unrecognized version");
                 }
-                else
-                {
-                    version = 0;
-                }
 
                 if (version == 0)
                 {
-                    headerSize = 12;
                     numFilesTotal = headerSize;
                     numFilesWithNameHash = version;
+                    headerSize = 12;
                 }
                 else
                 {
