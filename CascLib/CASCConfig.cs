@@ -139,6 +139,7 @@ namespace CASCLib
         public static string BuildConfigKeyOverride { get; set; }
         public static string CDNConfigOverride { get; set; } // path to file
         public static string CDNConfigKeyOverride { get; set; }
+        public static string CDNHostOverride { get; set; }
 
         private CASCConfig() { }
 
@@ -440,6 +441,9 @@ namespace CASCLib
         {
             get
             {
+                if (!string.IsNullOrWhiteSpace(CDNHostOverride))
+                    return CDNHostOverride;
+
                 if (OnlineMode)
                 {
                     var hosts = GetCdnsVariable("Hosts").Split(' ');
