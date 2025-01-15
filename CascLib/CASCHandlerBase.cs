@@ -103,7 +103,7 @@ namespace CASCLib
         {
             Stream s;
 
-            if (idxInfo != null)
+            if (idxInfo.IsValid)
                 s = CDNIndex.OpenDataFile(idxInfo);
             else
                 s = CDNIndex.OpenDataFileDirect(eKey);
@@ -116,7 +116,7 @@ namespace CASCLib
             }
             catch (BLTEDecoderException exc) when (exc.ErrorCode == 0)
             {
-                CDNCache.Instance.InvalidateFile(idxInfo != null ? Config.Archives[idxInfo.Index] : eKey.ToHexString());
+                CDNCache.Instance.InvalidateFile(idxInfo.IsValid ? Config.Archives[idxInfo.Index] : eKey.ToHexString());
                 return OpenFileOnlineInternal(idxInfo, eKey);
             }
 
@@ -138,7 +138,7 @@ namespace CASCLib
 
         protected Stream GetLocalDataStreamInternal(IndexEntry idxInfo, in MD5Hash eKey)
         {
-            if (idxInfo == null)
+            if (!idxInfo.IsValid)
             {
                 string message = $"Local index missing: {eKey.ToHexString()}";
                 Logger.WriteLine(message);
@@ -201,7 +201,7 @@ namespace CASCLib
 
         protected void ExtractFileOnlineInternal(IndexEntry idxInfo, in MD5Hash eKey, string path, string name)
         {
-            if (idxInfo != null)
+            if (idxInfo.IsValid)
             {
                 using (Stream s = CDNIndex.OpenDataFile(idxInfo))
                 using (BLTEStream blte = new BLTEStream(s, eKey))
