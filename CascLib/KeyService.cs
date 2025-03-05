@@ -303,6 +303,7 @@ namespace CASCLib
             [0x2F454B153E142B76] = "1966430485B785B17234495E85BCA78F".FromHexString(), // TactKeyId 469
             [0xB5F633819B0DE383] = "B1F01BEF8AC2208DE7051D38AB36C85C".FromHexString(), // TactKeyId 470
             [0x1FFB6C550D055F12] = "620F0397FD3B8E00FEDDEEEA7C255936".FromHexString(), // TactKeyId 471
+            [0x8C5276FE6714BE1C] = "3AB1971A419C16C08F28CE6AA8FC2F36".FromHexString(), // TactKeyId 472
             //[0x258D1178AB798566] = "????????????????????????????????".FromHexString(), // TactKeyId 473
             //[0x1E6AC96860BD524B] = "????????????????????????????????".FromHexString(), // TactKeyId 474
             [0x6F5EBDF150B3441D] = "3866C0AC925023EA1145E20C021EED41".FromHexString(), // TactKeyId 475
