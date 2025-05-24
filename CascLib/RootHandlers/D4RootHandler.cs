@@ -495,11 +495,18 @@ namespace CASCLib
         CommunityModifier = 162,
         GenericNodeGraph = 163,
         UserDefinedData = 164,
-        Unknown_165 = 165, // .fds
-        Unknown_166 = 166, // .bvr
+        DataStore = 165,
+        BehaviorContainer = 166,
         ActorService = 167,
         DamageRemap = 168,
-        MAX_SNO_GROUPS = 169,
+        Vendor = 169,
+        GenericSkillTree = 170,
+        Unknown_171 = 171, // .dem
+        Crowd = 172,
+        Unknown_173 = 173, // .crt
+        Unknown_174 = 174, // .crp
+        VisualRemap = 175,
+        MAX_SNO_GROUPS = 176,
     }
 
     public class CoreTOCParserD4
@@ -693,6 +700,13 @@ namespace CASCLib
             [(SNOGroupD4)166] = ".bvr",
             [(SNOGroupD4)167] = ".asv",
             [(SNOGroupD4)168] = ".dmg",
+            [(SNOGroupD4)169] = ".vnd",
+            [(SNOGroupD4)170] = ".gst",
+            [(SNOGroupD4)171] = ".dem",
+            [(SNOGroupD4)172] = ".crd",
+            [(SNOGroupD4)173] = ".crt",
+            [(SNOGroupD4)174] = ".crp",
+            [(SNOGroupD4)175] = ".vrm",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
