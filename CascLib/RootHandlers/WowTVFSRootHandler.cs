@@ -52,6 +52,9 @@ namespace CASCLib
             {
                 if (tvfsEntry.Value.Orig.Length == 53)
                 {
+                    if (tvfsEntry.Value.Orig[12] != '/')
+                        continue;
+
 #if NET6_0_OR_GREATER
                     ReadOnlySpan<char> entryData = tvfsEntry.Value.Orig.AsSpan();
                     LocaleFlags locale = (LocaleFlags)int.Parse(entryData.Slice(0, 8), System.Globalization.NumberStyles.HexNumber);
