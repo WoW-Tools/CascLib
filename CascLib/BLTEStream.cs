@@ -232,12 +232,16 @@ namespace CASCLib
 
                 byte IVSize = br.ReadByte();
 
-                if (IVSize != 4 || IVSize > 0x10)
+                if ((IVSize != 4 && IVSize != 8) || IVSize > 0x10)
                     throw new BLTEDecoderException(2, "IVSize != 4 || IVSize > 0x10");
 
                 byte[] IV = br.ReadBytes(IVSize);
-                // expand to 8 bytes
-                Array.Resize(ref IV, 8);
+
+                if (IVSize == 4)
+                {
+                    // expand to 8 bytes
+                    Array.Resize(ref IV, 8);
+                }
 
                 if (data.Length < keyNameSize + IVSize + 4)
                     throw new BLTEDecoderException(2, "data.Length < IVSize + keyNameSize + 4");
