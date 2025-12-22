@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+#if NET8_0_OR_GREATER
+using System.Linq;
+#endif
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -80,6 +83,10 @@ namespace CASCLib
 
         private Dictionary<int, string> Packages = new Dictionary<int, string>();
         private Dictionary<int, LocaleFlags> PackagesLocale = new Dictionary<int, LocaleFlags>();
+        private Dictionary<string, int> IndexByPackages = new Dictionary<string, int>();
+#if NET9_0_OR_GREATER
+        private Dictionary<string, int>.AlternateLookup<ReadOnlySpan<char>> IndexByPackagesSpanLookup;
+#endif
 
         private Dictionary<ulong, RootEntry> mndxData = new Dictionary<ulong, RootEntry>();
 
@@ -88,6 +95,9 @@ namespace CASCLib
 
         public MNDXRootHandler(BinaryReader stream, BackgroundWorkerEx worker)
         {
+#if NET9_0_OR_GREATER
+            IndexByPackagesSpanLookup = IndexByPackages.GetAlternateLookup<ReadOnlySpan<char>>();
+#endif
             worker?.ReportProgress(0, "Loading \"root\"...");
 
             var header = stream.Read<MNDXHeader>();
@@ -233,28 +243,36 @@ namespace CASCLib
 
         private int FindMNDXPackage(string fileName)
         {
-            int nMaxLength = 0;
-            int pMatching = -1;
+            if (IndexByPackages.TryGetValue(fileName, out int pkgIndex))
+                return pkgIndex;
 
-            int fileNameLen = fileName.Length;
+#if NET8_0_OR_GREATER
+            int splitterCount = fileName.Count(x => x == '/');
+            Span<Range> filePathRanges = stackalloc Range[splitterCount + 1];
 
-            foreach (var package in Packages)
+            ReadOnlySpan<char> fileNameSpan = fileName.AsSpan();
+            int size = fileNameSpan.SplitAny(filePathRanges, "/", StringSplitOptions.None);
+#else
+            string[] fileNameSplit = fileName.Split('/');
+            int size = fileNameSplit.Length;
+#endif
+            // skip first since already checked full path
+            for (int i = size - 2; i >= 0; i--)
             {
-                string pkgName = package.Value;
-                int pkgNameLen = pkgName.Length;
-
-                if (pkgNameLen < fileNameLen && pkgNameLen > nMaxLength)
-                {
-                    // Compare the package name
-                    if (string.CompareOrdinal(fileName, 0, pkgName, 0, pkgNameLen) == 0)
-                    {
-                        pMatching = package.Key;
-                        nMaxLength = pkgNameLen;
-                    }
-                }
+#if NET9_0_OR_GREATER
+                ReadOnlySpan<char> part = fileNameSpan[..filePathRanges[i].End.Value];
+                if (IndexByPackagesSpanLookup.TryGetValue(part, out pkgIndex))
+#elif NET8_0_OR_GREATER
+                ReadOnlySpan<char> part = fileNameSpan[..filePathRanges[i].End.Value];
+                if (IndexByPackages.TryGetValue(part.ToString(), out pkgIndex))
+#else
+                string part = string.Join("/", fileNameSplit, 0, i + 1);
+                if (IndexByPackages.TryGetValue(part, out pkgIndex))
+#endif
+                    return pkgIndex;
             }
 
-            return pMatching;
+            throw new KeyNotFoundException($"Package not found for file '{fileName}'");
         }
 
         private CASC_ROOT_ENTRY_MNDX FindMNDXInfo(string path, int dwPackage)
@@ -329,6 +347,7 @@ namespace CASCLib
             foreach (var result in MarFiles[0].EnumerateFiles())
             {
                 Packages.Add(result.FileNameIndex, result.FoundPath);
+                IndexByPackages.Add(result.FoundPath, result.FileNameIndex);
 
                 Match match1 = regex1.Match(result.FoundPath);
                 Match match2 = regex2.Match(result.FoundPath);
@@ -418,6 +437,7 @@ namespace CASCLib
             mndxRootEntriesValid.Clear();
             Packages.Clear();
             PackagesLocale.Clear();
+            IndexByPackages.Clear();
             Root.Files.Clear();
             Root.Folders.Clear();
             CASCFile.Files.Clear();
